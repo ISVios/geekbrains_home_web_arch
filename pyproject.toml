@@ -8,6 +8,7 @@ packages = [{include = "geekbrains_home_web_arch"}]
 
 [tool.poetry.dependencies]
 python = "3.10.10"
+uwsgi = "2.0.21"
 
 [tool.poetry.group.dev.dependencies]
 pyvim = "3.0.3"
