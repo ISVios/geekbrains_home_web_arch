@@ -1,5 +1,8 @@
 # Todo
 
+- [ ] add get static file
+- [ ] split or spot get/post/del method
+
 ## Task
 
 - Написать свой wsgi фреймворк использую паттерны
