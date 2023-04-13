@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "geekbrains-home-web-arch"
+version = "0.1.0"
+description = ""
+authors = ["vios <i.svoboda.vios@gmail.com>"]
+readme = "README.md"
+packages = [{include = "geekbrains_home_web_arch"}]
+
+[tool.poetry.dependencies]
+python = "3.10.10"
+
+[tool.poetry.group.dev.dependencies]
+pyvim = "3.0.3"
+black = "23.3.0"
+pynvim = "0.4.3"
+neovim = "0.3.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
