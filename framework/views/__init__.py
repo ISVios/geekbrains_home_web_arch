@@ -1,3 +1,3 @@
-from .view_type import View
+from .view import NoFoundPage, ErrorMessage
 
-__all__ = ["View"]
+__all__ = ["NoFoundPage", "ErrorMessage"]

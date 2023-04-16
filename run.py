@@ -5,51 +5,56 @@ User script how use framework
 import argparse
 import datetime
 
-from framework import FrameWork
-from framework.utils.render import render
-from framework.views.view_type import View
+from framework import FrameWork, SysEnv, ViewEnv, FrontType, ViewType, ViewResult
 
 DEF_ADR = "0.0.0.0"
 DEF_PORT = 8080
 
 
 # urls
-class Contact(View):
-    def __call__(self, response) -> tuple[int, str]:
-        return 200, render("contact.html", "./simplestyle_8/", **response)
+class Index(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        result.code = 200
+        result.render_template("index.html", "./simplestyle_8")
 
 
-class Index(View):
-    def __call__(self, response) -> tuple[int, str]:
-        return 200, render("index.html", "./simplestyle_8/", **response)
+class Contact(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        result.code = 200
+        result.render_template("contact.html", "./simplestyle_8")
 
 
-class AnotherPage(View):
-    def __call__(self, response) -> tuple[int, str]:
-        return 200, render("another_page.html", "./simplestyle_8/", **response)
+class AnotherPage(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        result.code = 200
+        result.render_template("another_page.html", "./simplestyle_8")
 
 
-class Examples(View):
-    def __call__(self, response) -> tuple[int, str]:
-        return 200, render("examples.html", "./simplestyle_8/", **response)
+class Examples(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        result.code = 200
+        result.render_template("examples.html", "./simplestyle_8")
 
 
-class Page(View):
-    def __call__(self, response) -> tuple[int, str]:
-        return 200, render("page.html", "./simplestyle_8/", **response)
+class Page(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        result.code = 200
+        result.render_template("page.html", "./simplestyle_8")
 
 
 # fronts
-class Date:
-    def __call__(self, response):
-        response["date"] = datetime.datetime.now()
-        return response
+class Date(FrontType):
+    def front_action(
+        self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
+    ) -> ViewEnv:
+        view_env["date"] = datetime.datetime.now()
+        return view_env
 
 
-class Urls:
-    def __call__(self, response):
-        response["urls"] = FrameWork.get_framework().get_register_urls()
-        return response
+class Urls(FrontType):
+    def front_action(self, sys_env: dict, view_env: dict, config: dict, **kwds) -> dict:
+        view_env["urls"] = FrameWork.get_framework().get_register_urls()
+        return view_env
 
 
 if __name__ == "__main__":

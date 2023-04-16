@@ -1,7 +1,8 @@
 # Todo
 
 - [ ] add get static file
-- [ ] split or spot get/post/del method
+- [ ] split or spot get/post/del/.. method
+- [ ] split system env and view`s env by fronts
 
 ## Task
 
