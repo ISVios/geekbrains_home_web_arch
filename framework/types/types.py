@@ -1,4 +1,5 @@
 import abc
+from logging import Logger
 
 from framework.utils.render import render
 
@@ -29,7 +30,9 @@ class SysEnv(TypedDict):
 
 
 class ViewEnv(TypedDict):
-    pass
+    @property
+    def logger(self) -> "Logger":
+        return self["Logger"]
 
 
 ##
@@ -57,6 +60,10 @@ class ViewResult:
         self.result["code"] = -1
         self.result["text"] = ""
 
+    def __call__(self, code: int, text: str):
+        self.code = code
+        self.text = text
+
     @property
     def code(self):
         return self.result["code"]
@@ -78,9 +85,14 @@ class ViewResult:
         template_name: str,
         folder: str,  # by_namespace: "str|None" = None, by_path: "str|None" = None
         code: "int|None" = None,
+        # custom_args: "dict|None"=None
     ):
         if code:
             self.code = code
+        self.text = render(template_name, folder, **self.env.to_dict())
+
+    def render_with_code(self, code: int, template_name: str, folder: str):
+        self.code = code
         self.text = render(template_name, folder, **self.env.to_dict())
 
 

@@ -4,6 +4,7 @@ User script how use framework
 """
 import argparse
 import datetime
+import logging
 
 from framework import FrameWork, SysEnv, ViewEnv, FrontType, ViewType, ViewResult
 
@@ -14,8 +15,8 @@ DEF_PORT = 8080
 # urls
 class Index(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        result.code = 200
-        result.render_template("index.html", "./simplestyle_8")
+        view_env.logger.critical("Hi from logger")
+        result.render_with_code(200, "index.html", "./simplestyle_8")
 
 
 class Contact(ViewType):
@@ -65,6 +66,7 @@ if __name__ == "__main__":
     framework.config["adr"] = DEF_ADR
     framework.config["port"] = DEF_PORT
     framework.config["static_pth"] = "./simplestyle_8/"
+    framework.config["logger_level"] = logging.INFO
 
     # views
     framework.register_views(Index(), "/", "main")

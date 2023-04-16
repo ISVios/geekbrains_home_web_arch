@@ -1,16 +1,21 @@
+import logging
 from typing import Callable
 from wsgiref.simple_server import make_server
+
 from framework.error import NoNameSpaceFound
 from framework.fronts import (
-    NameSpaceList,
-    Router,
-    ParsedEnvArgs,
     FunctionCalback,
+    NameSpaceList,
+    ParsedEnvArgs,
+    Router,
     Static,
 )
-from framework.types import SysEnv, ViewType, FrontType, ViewEnv, ViewResult
-
+from framework.logger.logger import LoggerFront
+from framework.types import FrontType, SysEnv, ViewEnv, ViewResult, ViewType
 from framework.views import NoFoundPage
+
+DEFAULT_LOGGER_LEVEL = logging.INFO
+DEFAULT_STATIC_FOLDER = "./template"
 
 
 class FrameWork:
@@ -58,10 +63,14 @@ class FrameWork:
 
             # buildin fronts
             buildin_front = [
+                LoggerFront(
+                    self.config.get("logger_level") or DEFAULT_LOGGER_LEVEL,
+                    # self.config.get("custom_logger"),
+                ),
                 ParsedEnvArgs(),
                 NameSpaceList(self.get_register_namespace_url()),
                 Router(),
-                Static(self.config["static_pth"]),
+                Static(self.config["static_pth"] or DEFAULT_STATIC_FOLDER),
             ]
 
             for front in buildin_front:
@@ -72,10 +81,13 @@ class FrameWork:
                 front(sys_env, view_env, self.config)
 
             args = view_env.get("ParsedEnvArgs") or {}
-            if method.upper() == "GET":
-                print(f"GET method with {args}")
-            elif method.upper() == "POST":
-                print(f"POST method with {args}")
+            if args:
+                if method.upper() == "GET":
+                    # view_env.logger.debug
+                    print(f"GET method with {args}")
+                elif method.upper() == "POST":
+                    # view_env.logger.debug
+                    print(f"POST method with {args}")
 
             if not view:
                 view = NoFoundPage()
@@ -83,6 +95,7 @@ class FrameWork:
             view_result = ViewResult(view_env)
             # sys_env - don`t must be in view_env
             view(view_env, self.config, view_result)
+            # view_result.action(view_env, self.config)
 
             response(str(view_result.code) + " ", [("Content-Type", "text/html")])
             return [view_result.text.encode("utf-8")]
@@ -101,6 +114,5 @@ class FrameWork:
     @classmethod
     def run_server(cls, addr, port):
         with make_server(addr, port, cls.get_framework()) as server:
-            # conver to logger
             print(f"Run server {addr}:{port}")
             server.serve_forever()
