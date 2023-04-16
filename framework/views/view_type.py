@@ -18,4 +18,4 @@ class NoFoundPage(View):
 
 # return file if Static
 class StaticFile(View):
-    raise NotImplemented
+    pass
