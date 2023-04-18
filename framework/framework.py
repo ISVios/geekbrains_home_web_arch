@@ -58,8 +58,10 @@ class FrameWork:
             if not url.endswith("/"):
                 url = f"{url}/"
 
-            # buildin views
-            # self.register_views(namespace="__static__")
+            # ToDo: buildin views
+            # self.register_views(
+            #     MediaStaicFileView(), "/__static__/*", namespace="__static__"
+            # )
 
             view: ViewType = NoFoundPage()
             if url in self.views:
@@ -79,7 +81,7 @@ class FrameWork:
                 Router(),
                 Static(
                     home_static_path=self.config.get(
-                        consts.CNFG_STATIC_PTH, consts.DEFAULT_CNFG_STATIC_FOLDER
+                        consts.CNFG_STATIC_PTH, consts.DEFAULT_CNFG_STATIC_PTH
                     ),
                     static_flg=self.config.get(
                         consts.CNFG_STATIC_MEDIA_FLG,
@@ -95,6 +97,7 @@ class FrameWork:
             for front in self.fronts:
                 front(sys_env, view_env, self.config)
 
+            # ToDo: conver to buildin_view
             if view_env.get("MediaStaicFileView") and view_env["MediaStaicFileView"]:
                 view = MediaStaicFileView()
 
@@ -124,14 +127,15 @@ class FrameWork:
             else:
                 return [view_result.data]
         except NoNameSpaceFound as err:
-            raise err
+            # raise err
 
             response("400 ", [("Content-Type", "text/html")])
             return [
                 f"<h1>NoNameSpaceFound by <b>'{err.namespace}'</b><h1>".encode("utf-8")
             ]
+
         except Exception as err:
-            raise err
+            # raise err
             response("400 ", [("Content-Type", "text/html")])
             return [f"<h1>Exception <br>'{err.__str__()}'</br><h1>".encode("utf-8")]
 
@@ -144,5 +148,8 @@ class FrameWork:
     @classmethod
     def run_server(cls, addr, port):
         with make_server(addr, port, cls.get_framework()) as server:
-            print(f"Run server {addr}:{port}")
-            server.serve_forever()
+            print(f"Run server http://{addr}:{port}")
+            try:
+                server.serve_forever()
+            except KeyboardInterrupt:
+                print("\rServer stop")

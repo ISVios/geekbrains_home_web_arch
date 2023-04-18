@@ -1,10 +1,8 @@
-import abc
 import os.path
 from typing import Callable
 
 from framework.error import NoNameSpaceFound
 from framework.types import FrontType, SysEnv, ViewEnv, consts
-from framework.types.types import ViewType
 from framework.utils.get_data import parse_args_by_method
 
 
@@ -20,6 +18,7 @@ class NameSpaceList(FrontType):
         # view_env["_"] = sys_env[]
         # full_url
         view_env[consts.ViewEnv_CUR_URL] = sys_env["PATH_INFO"]
+        view_env[consts.ViewEnv_HOST_URL] = sys_env["HTTP_HOST"]
         view_env[consts.ViewEnv_NAMESPAGEPAGE] = self.namespace_list
         return view_env
 
@@ -125,9 +124,12 @@ class Static(FrontType):
     ) -> ViewEnv:
         def static(path):
             # return
-            # url + __static__flag + static_pth + file
+            # host_url + __static__flag + static_pth(in view) + file
             return os.path.join(
-                view_env[consts.ViewEnv_CUR_URL], self.static_flg, self.static_pth, path
+                view_env[consts.ViewEnv_HOST_URL],
+                self.static_flg,
+                # self.static_pth,
+                path,
             )
 
         # add static func
@@ -137,6 +139,6 @@ class Static(FrontType):
         url = view_env[consts.ViewEnv_CUR_URL]
         url_splt = url.split(self.static_flg)
         if len(url_splt) > 1:
-            view_env["File"] = "." + url_splt[1]
+            view_env["File"] = url_splt[1]
             view_env["MediaStaicFileView"] = True
         return view_env
