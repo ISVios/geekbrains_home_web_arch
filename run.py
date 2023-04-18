@@ -63,6 +63,7 @@ if __name__ == "__main__":
     framework = FrameWork.get_framework()
 
     # config
+    framework.config["debug"] = True
     framework.config["adr"] = DEF_ADR
     framework.config["port"] = DEF_PORT
     framework.config["static_pth"] = "./simplestyle_8/"

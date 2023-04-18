@@ -19,19 +19,27 @@
     </head>
     <body>
         {% block main %}
-            {% block navigate %}
-                {% include "navigate.html" %}
-            {% endblock navigate %}
-            {% block pre_main_content %}
-                {% include "pre_content_news.html" %}
-            {% endblock pre_main_content %}
-            {% block main_content %}
-                MAIN CONTENT
-            {% endblock main_content %}
-            {% block footer %}
-                FOOTER
-                {% include "footer.html" %}
-            {% endblock footer %}
-        {% endblock main %}
-    </body>
-</html>
+            <div id="main">
+                <div id="header">
+                    <div id="logo">
+                        <h1>
+                            simplestyle<a href="#">_8</a>
+                        </h1>
+                        <div class="slogan">Cool slogan goes here!</div>
+                    </div>
+                    {% block navigate %}
+                        {% include "navigate.html" %}
+                    {% endblock navigate %}
+                </div>
+                {% block pre_main_content %}
+                    {% include "pre_content_news.html" %}
+                {% endblock pre_main_content %}
+                {% block main_content %}
+                    MAIN CONTENT
+                {% endblock main_content %}
+                {% block footer %}
+                    {% include "footer.html" %}
+                {% endblock footer %}
+            {% endblock main %}
+        </body>
+    </html>

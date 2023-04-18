@@ -4,6 +4,7 @@ from wsgiref.simple_server import make_server
 
 from framework.error import NoNameSpaceFound
 from framework.fronts import (
+    BreakPoint,
     FunctionCalback,
     NameSpaceList,
     ParsedEnvArgs,
@@ -11,11 +12,8 @@ from framework.fronts import (
     Static,
 )
 from framework.logger.logger import LoggerFront
-from framework.types import FrontType, SysEnv, ViewEnv, ViewResult, ViewType
-from framework.views import NoFoundPage
-
-DEFAULT_LOGGER_LEVEL = logging.INFO
-DEFAULT_STATIC_FOLDER = "./template"
+from framework.types import FrontType, SysEnv, ViewEnv, ViewResult, ViewType, consts
+from framework.views import NoFoundPage, MediaStaicFileView
 
 
 class FrameWork:
@@ -30,6 +28,11 @@ class FrameWork:
         self.views = {}
         self.fronts = set()
         self.config = {}
+
+        # one init fronts
+        # logger
+
+        # media
 
     def register_views(self, view: ViewType, url: str, namespace: str):
         self.views[url] = (view, namespace)
@@ -55,6 +58,9 @@ class FrameWork:
             if not url.endswith("/"):
                 url = f"{url}/"
 
+            # buildin views
+            # self.register_views(namespace="__static__")
+
             view: ViewType = NoFoundPage()
             if url in self.views:
                 view = self.views[url][0]
@@ -63,14 +69,23 @@ class FrameWork:
 
             # buildin fronts
             buildin_front = [
+                BreakPoint(),
                 LoggerFront(
-                    self.config.get("logger_level") or DEFAULT_LOGGER_LEVEL,
-                    # self.config.get("custom_logger"),
+                    custom_logger=self.config.get(consts.CNFG_CUSTOM_LOGGER)
+                    # self.config.get(consts.CNFG_LOGGER_LEVEL),
                 ),
                 ParsedEnvArgs(),
                 NameSpaceList(self.get_register_namespace_url()),
                 Router(),
-                Static(self.config["static_pth"] or DEFAULT_STATIC_FOLDER),
+                Static(
+                    home_static_path=self.config.get(
+                        consts.CNFG_STATIC_PTH, consts.DEFAULT_CNFG_STATIC_FOLDER
+                    ),
+                    static_flg=self.config.get(
+                        consts.CNFG_STATIC_MEDIA_FLG,
+                        consts.DEFAULT_CNFG_STATIC_MEDIA_FLG_VALUE,
+                    ),
+                ),
             ]
 
             for front in buildin_front:
@@ -80,7 +95,10 @@ class FrameWork:
             for front in self.fronts:
                 front(sys_env, view_env, self.config)
 
-            args = view_env.get("ParsedEnvArgs") or {}
+            if view_env.get("MediaStaicFileView") and view_env["MediaStaicFileView"]:
+                view = MediaStaicFileView()
+
+            args = view_env.get(consts.ViewEnv_ARGS) or {}
             if args:
                 if method.upper() == "GET":
                     # view_env.logger.debug
@@ -89,21 +107,33 @@ class FrameWork:
                     # view_env.logger.debug
                     print(f"POST method with {args}")
 
-            if not view:
-                view = NoFoundPage()
+            # if not view:
+            #     view = NoFoundPage()
+
+            # (media) view
 
             view_result = ViewResult(view_env)
             # sys_env - don`t must be in view_env
             view(view_env, self.config, view_result)
-            # view_result.action(view_env, self.config)
+            response(
+                str(view_result.code) + " ", [("Content-Type", view_result.data_type)]
+            )
 
-            response(str(view_result.code) + " ", [("Content-Type", "text/html")])
-            return [view_result.text.encode("utf-8")]
+            if view_result.is_text:
+                return [view_result.data.encode("utf-8")]
+            else:
+                return [view_result.data]
         except NoNameSpaceFound as err:
+            raise err
+
             response("400 ", [("Content-Type", "text/html")])
             return [
                 f"<h1>NoNameSpaceFound by <b>'{err.namespace}'</b><h1>".encode("utf-8")
             ]
+        except Exception as err:
+            raise err
+            response("400 ", [("Content-Type", "text/html")])
+            return [f"<h1>Exception <br>'{err.__str__()}'</br><h1>".encode("utf-8")]
 
     @classmethod
     def get_framework(cls):

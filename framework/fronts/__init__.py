@@ -1,4 +1,5 @@
 from .fronts import (
+    BreakPoint,
     Router,
     NameSpaceList,
     Static,
@@ -9,6 +10,7 @@ from .fronts import (
 
 
 __all__ = [
+    "BreakPoint",
     "Router",
     "NameSpaceList",
     "Static",

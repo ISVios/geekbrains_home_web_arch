@@ -1,6 +1,8 @@
 import abc
+import os
 from logging import Logger
 
+from framework.types import consts
 from framework.utils.render import render
 
 
@@ -24,6 +26,9 @@ class TypedDict:
     def __setitem__(self, __name: str, __value):
         self.__typed_dict[__name] = __value
 
+    def has_key(self, k):
+        return k in self.__dict__
+
 
 class SysEnv(TypedDict):
     pass
@@ -32,7 +37,13 @@ class SysEnv(TypedDict):
 class ViewEnv(TypedDict):
     @property
     def logger(self) -> "Logger":
-        return self["Logger"]
+        return self[consts.ViewEnv_LOGGER]
+
+    # ToDo: add property
+    #  url
+    #  method
+    #  args
+    #
 
 
 ##
@@ -46,7 +57,7 @@ class FrontType(abc.ABC):
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
-        raise NotImplemented
+        return view_env
 
 
 ##
@@ -57,12 +68,15 @@ class ViewResult:
     def __init__(self, env: ViewEnv) -> None:
         self.env = env
         self.result = {}
-        self.result["code"] = -1
-        self.result["text"] = ""
+        self.result["code"] = -1  # special
+        self.result["data"] = ""
+        self.result["data_type"] = consts.DEFAULT_CNFG_VIEW_TYPE
+        self.result["text"] = True
 
-    def __call__(self, code: int, text: str):
+    def __call__(self, code: int, data, data_type: str = consts.DEFAULT_CNFG_VIEW_TYPE):
         self.code = code
-        self.text = text
+        self.data = data
+        self.data_type = data_type
 
     @property
     def code(self):
@@ -73,11 +87,27 @@ class ViewResult:
         self.result["code"] = value
 
     @property
-    def text(self):
+    def data(self):
+        return self.result["data"]
+
+    @data.setter
+    def data(self, value):
+        self.result["data"] = value
+
+    @property
+    def data_type(self):
+        return self.result["data_type"]
+
+    @data_type.setter
+    def data_type(self, value):
+        self.result["data_type"] = value
+
+    @property
+    def is_text(self):
         return self.result["text"]
 
-    @text.setter
-    def text(self, value):
+    @is_text.setter
+    def is_text(self, value):
         self.result["text"] = value
 
     def render_template(
@@ -89,48 +119,45 @@ class ViewResult:
     ):
         if code:
             self.code = code
-        self.text = render(template_name, folder, **self.env.to_dict())
+        self.data = render(template_name, folder, **self.env.to_dict())
 
     def render_with_code(self, code: int, template_name: str, folder: str):
         self.code = code
-        self.text = render(template_name, folder, **self.env.to_dict())
+        self.data = render(template_name, folder, **self.env.to_dict())
 
 
 ##
 class ViewType:
     def __call__(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        if hasattr(self, "__meta__"):
-            print(getattr(self, "__meta__"))
-
-        else:
-            self.view(view_env, config, result, **kwds)
+        self.view(view_env, config, result, **kwds)
 
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         pass
 
-    def only_get(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        pass
-
-    def only_head(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        pass
-
-    def only_post(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        pass
-
-    def only_put(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        pass
-
-    def only_options(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        pass
-
-    def only_pathc(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        pass
-
-    def only_connect(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        pass
-
-    def only_delete(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        pass
+    # def only_get(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+    #     pass
+    #
+    # def only_head(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+    #     pass
+    #
+    # def only_post(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+    #     pass
+    #
+    # def only_put(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+    #     pass
+    #
+    # def only_options(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+    #     pass
+    #
+    # def only_pathc(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+    #     pass
+    #
+    # def only_connect(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+    #     pass
+    #
+    # def only_delete(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+    #     pass
+    #
 
 
 if __name__ == "__main__":

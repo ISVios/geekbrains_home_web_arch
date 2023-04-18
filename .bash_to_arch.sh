@@ -8,7 +8,5 @@ cur_lesson=$(git branch --show-current)
 arch_name="${cur_lesson}_${F}.zip"
 cd ..
 
-# arh
-echo $arch_name 
-
-zip -r $arch_name $cur_folder
+# ziping
+zip -r $arch_name $(basename $cur_folder)

@@ -1,11 +1,11 @@
 import abc
 import os.path
 from typing import Callable
-from framework.error import NoNameSpaceFound
-from framework.types.types import ViewType
 
+from framework.error import NoNameSpaceFound
+from framework.types import FrontType, SysEnv, ViewEnv, consts
+from framework.types.types import ViewType
 from framework.utils.get_data import parse_args_by_method
-from framework.types import SysEnv, ViewEnv, FrontType
 
 
 class NameSpaceList(FrontType):
@@ -17,7 +17,10 @@ class NameSpaceList(FrontType):
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
-        view_env["NameSpaceList"] = self.namespace_list
+        # view_env["_"] = sys_env[]
+        # full_url
+        view_env[consts.ViewEnv_CUR_URL] = sys_env["PATH_INFO"]
+        view_env[consts.ViewEnv_NAMESPAGEPAGE] = self.namespace_list
         return view_env
 
 
@@ -36,30 +39,57 @@ class FunctionCalback(FrontType):
         return view_env
 
 
+# ToDo: connect with config "debug_print_sysenv"
+class DebugSysEnv(FrontType):
+    def front_action(
+        self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
+    ) -> ViewEnv:
+        view_env.logger.debug(sys_env.to_dict())
+        return super().front_action(sys_env, view_env, config, **kwds)
+
+
+# ToDo: connect with config "debug_print_viewenv"
+class DebugViewEnv(FrontType):
+    def front_action(
+        self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
+    ) -> ViewEnv:
+        view_env.logger.debug(view_env.to_dict())
+        return super().front_action(sys_env, view_env, config, **kwds)
+
+
+class BreakPoint(FrontType):
+    def front_action(
+        self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
+    ) -> ViewEnv:
+        def breakpoint_func(sys_env: SysEnv, view_env: ViewEnv, config: dict, func):
+            if config.get(consts.DEBUG) and config[consts.DEBUG]:
+                func()
+
+        view_env[consts.ViewEnv_BREAKPOINT] = lambda: breakpoint_func(
+            sys_env, view_env, config, breakpoint
+        )  # add python breakpoint func
+        return super().front_action(sys_env, view_env, config, **kwds)
+
+
 class ParsedEnvArgs(FrontType):
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
-        view_env["Method"] = sys_env.get("REQUEST_METHOD")
-        view_env["ParsedEnvArgs"] = parse_args_by_method(sys_env.to_dict())
+        view_env[consts.ViewEnv_METHOD] = sys_env.get("REQUEST_METHOD")
+        view_env[consts.ViewEnv_ARGS] = parse_args_by_method(sys_env.to_dict())
         return view_env
 
 
 class Router(FrontType):
-    # reg_views: dict[str, ViewType]
-    #
-    # def __init__(self, reg_views):
-    #     self.reg_views = reg_views
-
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
         def router(url):
-            router_dict = view_env["NameSpaceList"]
+            router_dict = view_env[consts.ViewEnv_NAMESPAGEPAGE]
             if not url in router_dict:
                 raise NoNameSpaceFound(url)
 
-            return view_env["NameSpaceList"][url]
+            return view_env[consts.ViewEnv_NAMESPAGEPAGE][url]
 
         FunctionCalback(func=router)(sys_env, view_env, config, **kwds)
         return view_env
@@ -67,16 +97,33 @@ class Router(FrontType):
 
 class Static(FrontType):
     static_pth: str
+    static_flg: str
 
-    def __init__(self, home_static_path: str) -> None:
+    def __init__(
+        self,
+        home_static_path: str,
+        static_flg: str = consts.DEFAULT_CNFG_STATIC_MEDIA_FLG_VALUE,
+    ) -> None:
         self.static_pth = home_static_path
+        self.static_flg = static_flg
 
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
         def static(path):
-            return os.path.join(self.static_pth, path)
+            # return
+            # url + __static__flag + static_pth + file
+            return os.path.join(
+                view_env[consts.ViewEnv_CUR_URL], self.static_flg, self.static_pth, path
+            )
 
-        view_env["static"] = static
+        # add static func
+        view_env[consts.ViewEnv_STATIC] = static
 
+        # parse static file
+        url = view_env[consts.ViewEnv_CUR_URL]
+        url_splt = url.split(self.static_flg)
+        if len(url_splt) > 1:
+            view_env["File"] = "." + url_splt[1]
+            view_env["MediaStaicFileView"] = True
         return view_env

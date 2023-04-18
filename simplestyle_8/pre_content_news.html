@@ -1,7 +1,7 @@
 {% block pre_main_content %}
     <div id="site_content">
         <div id="sidebar_container">
-            <img class="paperclip" src="style/paperclip.png" alt="paperclip" />
+            <img class="paperclip" src={{ static('style/paperclip.png') }} alt="paperclip" />
             <div class="sidebar">
                 <!-- insert your sidebar items here -->
                 <h3>Latest News</h3>
@@ -13,7 +13,9 @@
                     <a href="#">Read more</a>
                 </p>
             </div>
-            <img class="paperclip" src="style/paperclip.png" alt="paperclip" />
+            <img class="paperclip"
+                 src="{{ static('style/paperclip.png') }}"
+                 alt="paperclip"/>
             <div class="sidebar">
                 <h3>Newsletter</h3>
                 <p>If you would like to receive our newletter, please enter your email address and click 'Subscribe'.</p>
@@ -30,7 +32,7 @@
                     </p>
                 </form>
             </div>
-            <img class="paperclip" src="style/paperclip.png" alt="paperclip" />
+            <img class="paperclip" src={{ static('style/paperclip.png') }} alt="paperclip" />
             <div class="sidebar">
                 <h3>Latest Blog</h3>
                 <h4>Website Goes Live</h4>

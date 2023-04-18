@@ -1,4 +1,5 @@
 import logging
+from framework.types import consts
 
 from framework.types.types import FrontType, SysEnv, ViewEnv, ViewResult
 
@@ -21,5 +22,5 @@ class LoggerFront(FrontType):
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
-        view_env["Logger"] = self.logger
+        view_env[consts.ViewEnv_LOGGER] = self.logger
         return view_env
