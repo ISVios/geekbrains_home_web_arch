@@ -85,13 +85,26 @@ class Router(FrontType):
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
         def router(url):
+            """
+            conver {{ router ('index') }} to url from namespace_list
+            """
             router_dict = view_env[consts.ViewEnv_NAMESPAGEPAGE]
             if not url in router_dict:
                 raise NoNameSpaceFound(url)
 
             return view_env[consts.ViewEnv_NAMESPAGEPAGE][url]
 
+        def is_router(url):
+            """
+            test current url with router('url')
+            """
+            router_url = router(url)
+            cur_url = view_env[consts.ViewEnv_CUR_URL]
+
+            return cur_url == router_url
+
         FunctionCalback(func=router)(sys_env, view_env, config, **kwds)
+        FunctionCalback(func=is_router)(sys_env, view_env, config, **kwds)
         return view_env
 
 
