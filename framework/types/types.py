@@ -127,6 +127,7 @@ class ViewResult:
 
 
 ##
+# ToDo: add OnlyGetView interface
 class ViewType:
     def __call__(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         self.view(view_env, config, result, **kwds)
