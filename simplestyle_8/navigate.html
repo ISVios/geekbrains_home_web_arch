@@ -1,0 +1,22 @@
+{% block navigate %}
+    <div id="menubar">
+        <ul id="menu">
+            <!-- put class="current" in the li tag for the selected page - to highlight which page you're on -->
+            <li class="current">
+                <a href={{ router('main') }}>Home</a>
+            </li>
+            <li>
+                <a href={{ router('examples') }}>Examples</a>
+            </li>
+            <li>
+                <a href={{ router('page') }}>A Page</a>
+            </li>
+            <li>
+                <a href={{ router('another_page') }}>Another Page</a>
+            </li>
+            <li>
+                <a href={{ router('contact') }}>Contact Us</a>
+            </li>
+        </ul>
+    </div>
+{% endblock navigate %}
