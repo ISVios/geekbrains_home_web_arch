@@ -9,4 +9,4 @@ arch_name="${cur_lesson}_${F}.zip"
 cd ..
 
 # ziping
-zip -r $arch_name $(basename $cur_folder)
+zip -r $arch_name $(basename $cur_folder)  -x "**/.venv/*" -x "**/__pycache__/*"  
