@@ -1,8 +1,9 @@
-import logging
 from typing import Callable
 from wsgiref.simple_server import make_server
+import re
 
 from framework.error import NoNameSpaceFound
+from framework.error.error import DuplicateNameSpace, FrameWorkError
 from framework.fronts import (
     BreakPoint,
     FunctionCalback,
@@ -14,11 +15,10 @@ from framework.fronts import (
 from framework.logger.logger import LoggerFront
 from framework.types import FrontType, SysEnv, ViewEnv, ViewResult, ViewType, consts
 from framework.views import NoFoundPage, MediaStaicFileView
+from framework.utils import SingleToneType
 
 
-class FrameWork:
-    __single: "FrameWork|None" = None
-
+class FrameWork(metaclass=SingleToneType):
     views: dict[str, tuple[ViewType, str]]
     fronts: set
     funcs: dict[str, Callable]
@@ -35,6 +35,12 @@ class FrameWork:
         # media
 
     def register_views(self, view: ViewType, url: str, namespace: str):
+        # have url "item/<value:type>"
+        all_namespace = self.get_register_namespace_url().keys()
+
+        if namespace in all_namespace:
+            raise DuplicateNameSpace(namespace)
+
         self.views[url] = (view, namespace)
 
     def register_function(self, calback: Callable, force_name: "str|None" = None):
@@ -130,20 +136,34 @@ class FrameWork:
             # raise err
 
             response("400 ", [("Content-Type", "text/html")])
-            return [
-                f"<h1>NoNameSpaceFound by <b>'{err.namespace}'</b><h1>".encode("utf-8")
-            ]
+            if self.config[consts.DEBUG]:
+                return [
+                    f"<h1>NoNameSpaceFound by <b>'{err.namespace}'</b><h1>".encode(
+                        "utf-8"
+                    )
+                ]
+            else:
+                return [""]
+
+        except FrameWorkError as err:
+            response("400 ", [("Content-Type", "text/html")])
+            if self.config[consts.DEBUG]:
+                return [f"<h1>Exception <br>'{err.__str__()}'</br><h1>".encode("utf-8")]
+            else:
+                return [""]
 
         except Exception as err:
             # raise err
             response("400 ", [("Content-Type", "text/html")])
-            return [f"<h1>Exception <br>'{err.__str__()}'</br><h1>".encode("utf-8")]
+            if self.config[consts.DEBUG]:
+                return [f"<h1>Exception <br>'{err.__str__()}'</br><h1>".encode("utf-8")]
+            else:
+                return [""]
 
+    # will be deleted
     @classmethod
     def get_framework(cls):
-        if cls.__single == None:
-            cls.__single = FrameWork()
-        return cls.__single
+        return FrameWork()
 
     @classmethod
     def run_server(cls, addr, port):
