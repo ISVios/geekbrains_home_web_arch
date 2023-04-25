@@ -5,15 +5,23 @@
             <li {% if is_router('main') %} class="current" {% endif %}>
                 <a href={{ router('main') }}>Home</a>
             </li>
-            <li {% if is_router('examples') %} class="current" {% endif %}>
-                <a href={{ router('examples') }}>Examples</a>
+            <li {% if is_router('curses') %} class="current" {% endif %}>
+                <a href={{ router('curses') }}>Curses</a>
             </li>
-            <li {% if is_router('page') %} class="current" {% endif %}>
-                <a href={{ router('page') }}>A Page</a>
-            </li>
-            <li {% if is_router('another_page') %} class="current" {% endif %}>
-                <a href={{ router('another_page') }}>Another Page</a>
-            </li>
+            {% if True %}
+                <li {% if is_router('login') %} class="current" {% endif %}>
+                    <a href={{ router('login') }}>Login</a>
+                </li>
+            {% else %}
+                <li {% if is_router('page') %} class="current" {% endif %}>
+                    <a href={{ router('page') }}>Proffile</a>
+                </li>
+            {% endif %}
+            {% if False %}
+                <li {% if is_router('admin') %} class="current" {% endif %}>
+                    <a href={{ router('admin') }}>Admin panel</a>
+                </li>
+            {% endif %}
             <li {% if is_router('contact') %} class="current" {% endif %}>
                 <a href={{ router('contact') }}>Contact Us</a>
             </li>

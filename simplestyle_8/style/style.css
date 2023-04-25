@@ -405,3 +405,83 @@ table tr td {
   color: #111;
   border-top: 1px solid #FFF;
 }
+
+.register_menu {
+  display: none;
+}
+
+.register_menu .active {
+  display: inline;
+}
+
+.login_menu .active {
+  display: none;
+}
+
+.login_menu {
+  display: inline;
+}
+
+.cusres_list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1em;
+}
+
+.curse_item a {
+  text-decoration: none;
+  color: white;
+}
+
+.curse_item {
+
+  border: double red 4px;
+  width: 230px;
+  max-width: 320px;
+  text-align: center;
+  cursor: pointer;
+
+}
+
+.curse_body img {
+
+  width: 180px;
+  height: 200px;
+
+}
+
+.curse_header {
+  font: normal 200% 'Yanone Kaffeesatz', sans-serif;
+}
+
+.framework_debug {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  text-align: center;
+  background-color: red;
+  color: white;
+
+}
+
+.curse_info {
+  display: flex;
+  justify-content: space-between;
+  gap: 7em;
+}
+
+.lesson_text {
+  width: fit-content;
+}
+
+.content .center h1 {
+  text-align: center;
+}
+
+
+/* .curse_fotter { */
+/*   color: white; */
+/* } */

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block news %}
+{% endblock news %}
+{% block content %}
+    <div class="content center">
+        <h1>Curses Name</h1>
+        <div class="curse_info">
+            <div class="lesson_list">
+                <ul>
+                    {% for i in [1,2,3,4,5,6,7,8,9] %}
+                        <li>
+                            <a href="#">Lesson{{ i }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="lesson">
+                <div class="video_player">
+                    <!-- <video src="#" width="700" height="600"> -->
+                    <img src={{ static('style/graphic.png') }} alt="video_player_place" width="600", height="400">
+                </video>
+            </div>
+            <div class="lesson_text">
+                Lorem ipsum, dolor sit amet consectetur adipisicing elit. Unde iste vero in atque! Consequatur iste sapiente quae repellendus, odit sequi voluptates vel at a magni voluptatem, voluptas nostrum, nesciunt eos.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

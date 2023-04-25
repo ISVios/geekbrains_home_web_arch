@@ -2,9 +2,9 @@
 <html lang="eng">
     <head>
         <title>
-            {% block title %}
-                simplestyle_8
-            {% endblock title %}
+            {% block titile %}
+                stylesheet_8
+            {% endblock titile %}
         </title>
         <meta name="description" content="website description" />
         <meta name="keywords" content="website keywords, website keywords" />
@@ -15,31 +15,38 @@
         <link rel="stylesheet"
               type="text/css"
               href="http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz"/>
-        <link rel="stylesheet" type="text/css" href={{ static('style/style.css') }}  />
+        <link rel="stylesheet" type="text/css" href={{ static("style/style.css") }} />
     </head>
     <body>
-        {% block main %}
-            <div id="main">
-                <div id="header">
-                    <div id="logo">
-                        <h1>
-                            simplestyle<a href="#">_8</a>
-                        </h1>
-                        <div class="slogan">Cool slogan goes here!</div>
-                    </div>
-                    {% block navigate %}
-                        {% include "navigate.html" %}
-                    {% endblock navigate %}
+        <div id="main">
+            <!-- header -->
+            <div class="framework_debug">!!!! DEBUG MODE !!!!</div>
+            <div id="header">
+                <div id="logo">
+                    <h1>
+                        <a href="#">FYF</a>
+                    </h1>
+                    <div class="slogan">Find You Feature</div>
                 </div>
-                {% block pre_main_content %}
-                    {% include "pre_content_news.html" %}
-                {% endblock pre_main_content %}
-                {% block main_content %}
-                    MAIN CONTENT
-                {% endblock main_content %}
-                {% block footer %}
-                    {% include "footer.html" %}
-                {% endblock footer %}
-            {% endblock main %}
-        </body>
-    </html>
+                <!-- navigate -->
+                {% block navigate %}
+                    {% include "navigate.html" %}
+                {% endblock navigate %}
+                <!-- navigate -->
+            </div>
+            <!-- header -->
+            <div id="site_content">
+                <!-- news -->
+                {% block news %}
+                    {% include "news.html" %}
+                {% endblock news %}
+                <!-- news -->
+                {% block content %}
+                    CONTENT
+                {% endblock content %}
+            </div>
+        </div>
+        {% include "footer.html"  %}
+    </div>
+</body>
+</html>

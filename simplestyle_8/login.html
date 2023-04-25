@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}
+    FYF - Login/Register
+{% endblock title %}
+{% block content %}
+    <div id="content">
+        <div class="login_menu">
+            <h1>Login</h1>
+            <form action="#" method="post">
+                <div class="form_settings">
+                    <p>
+                        <span>Login</span>
+                        <input class="contact" type="text" name="login" value="" />
+                    </p>
+                    <p>
+                        <span>Password</span>
+                        <input class="contact" type="password" name="passwd" value="" />
+                    </p>
+                    <p>
+                        Remembe me
+                        <input class="contact" type="checkbox" name="remebe" value="" />
+                    </p>
+                    <p>
+                        <span>&nbsp;</span>
+                        <input class="submit" type="submit" name="contact_submitted" value="Login" />
+                    </p>
+                    <p>
+                        if you don`t have account <a href="#">register</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+        <div class="register_menu">
+            <h1>Register</h1>
+            <form action="#" method="post">
+                <div class="form_settings">
+                    <p>
+                        <span>Login</span>
+                        <input class="contact" type="text" name="login" value="" />
+                    </p>
+                    <p>
+                        <span>Email Address</span>
+                        <input class="contact" type="text" name="email" value="" />
+                    </p>
+                    <p>
+                        <span>Password</span>
+                        <input class="contact" type="password" name="passwd" value="" />
+                    </p>
+                    <p>
+                        <span>Repeat password</span>
+                        <input class="contact" type="password" name="passwd_dup" value="" />
+                    </p>
+                    <p>
+                        <span>&nbsp;</span>
+                        <input class="submit"
+                               type="submit"
+                               name="contact_submitted"
+                               value="Register"/>
+                    </p>
+                    <p>
+                        if you have account <a href="#">login</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock content %}
