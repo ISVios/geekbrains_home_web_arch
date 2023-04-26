@@ -9,6 +9,8 @@
 - [ ] add custom env for render_template in ViewResult
 - [ ] optim template by jija (move navigate to other page)
 - [ ] connect logger (fix config)
+- [ ] add admin panel
+- [ ] add viewAdmin Type like in flask
 
 ## Task
 

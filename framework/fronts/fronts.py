@@ -60,6 +60,8 @@ class BreakPoint(FrontType):
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
+        view_env["Debug_Mode"] = config[consts.DEBUG]
+
         def breakpoint_func(sys_env: SysEnv, view_env: ViewEnv, config: dict, func):
             if config.get(consts.DEBUG) and config[consts.DEBUG]:
                 func()
@@ -83,7 +85,7 @@ class Router(FrontType):
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
-        def router(url):
+        def router(url, **kwds):
             """
             conver {{ router ('index') }} to url from namespace_list
             """
@@ -93,7 +95,7 @@ class Router(FrontType):
 
             return view_env[consts.ViewEnv_NAMESPAGEPAGE][url]
 
-        def is_router(url):
+        def is_router(url, **kwds):
             """
             test current url with router('url')
             """

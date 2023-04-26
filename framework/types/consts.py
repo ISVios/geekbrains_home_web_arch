@@ -1,4 +1,5 @@
 import logging
+import re
 
 # const
 CONTENT_TYPE_HTML = "text/html"
@@ -32,3 +33,6 @@ DEFAULT_CNFG_STATIC_MEDIA_FLG_VALUE = "__static__"
 DEFAULT_CNFG_LOGGER_LEVEL = logging.INFO
 DEFAULT_CNFG_STATIC_PTH = "./template"
 DEFAULT_CNFG_VIEW_TYPE = CONTENT_TYPE_HTML
+
+# urs regex parser
+DEFAULT_CNFG_URL_PARSER = re.compile("")

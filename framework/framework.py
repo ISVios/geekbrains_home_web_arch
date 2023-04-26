@@ -116,11 +116,6 @@ class FrameWork(metaclass=SingleToneType):
                     # view_env.logger.debug
                     print(f"POST method with {args}")
 
-            # if not view:
-            #     view = NoFoundPage()
-
-            # (media) view
-
             view_result = ViewResult(view_env)
             # sys_env - don`t must be in view_env
             view(view_env, self.config, view_result)

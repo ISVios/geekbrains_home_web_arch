@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}
+    FYF - admin page
+{% endblock title %}
+{% block news %}
+{% endblock news %}
+{% block content %}
+    <div id="content">
+        <h1>Admin panel</h1>
+        <div class="view_lists">
+            <div class="curses_list">
+                <h2>Curses List</h2>
+                <ul>
+                    {% for curse_item in curses %}
+                        <li>
+                            <a href={{ router('course_form', action='edit',  id=curse_item.index) }}>{{ curse_item.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <a href={{ router('course_form', action='create') }}>add Curses</a>
+            </div>
+            <div class="category_list">
+                <h2>Category List</h2>
+                <ul>
+                    {% for category_item in [] %}{% endfor %}
+                </ul>
+                <a href={{ router('course_form', action='create') }}>add Category</a>
+            </div>
+            <div class="students_list">
+                <h2>Students List</h2>
+                <ul>
+                    {% for user_item in [] %}{% endfor %}
+                </ul>
+                <a href={{ router('course_form', action='create') }}>add Student</a>
+            </div>
+            <div class="teacher_list">
+                <h2>Teacher List</h2>
+                <ul>
+                    {% for user_item in [] %}{% endfor %}
+                </ul>
+                <a href={{ router('course_form', action='create') }}>add Teacher</a>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

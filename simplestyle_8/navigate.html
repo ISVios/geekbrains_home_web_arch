@@ -5,8 +5,8 @@
             <li {% if is_router('main') %} class="current" {% endif %}>
                 <a href={{ router('main') }}>Home</a>
             </li>
-            <li {% if is_router('curses') %} class="current" {% endif %}>
-                <a href={{ router('curses') }}>Curses</a>
+            <li {% if is_router('courses') %} class="current" {% endif %}>
+                <a href={{ router('courses') }}>Curses</a>
             </li>
             {% if True %}
                 <li {% if is_router('login') %} class="current" {% endif %}>
@@ -17,11 +17,9 @@
                     <a href={{ router('page') }}>Proffile</a>
                 </li>
             {% endif %}
-            {% if False %}
-                <li {% if is_router('admin') %} class="current" {% endif %}>
-                    <a href={{ router('admin') }}>Admin panel</a>
-                </li>
-            {% endif %}
+            <li {% if is_router('admin') %} class="current" {% endif %}>
+                <a href={{ router('admin') }}>Admin panel</a>
+            </li>
             <li {% if is_router('contact') %} class="current" {% endif %}>
                 <a href={{ router('contact') }}>Contact Us</a>
             </li>

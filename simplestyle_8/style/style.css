@@ -422,19 +422,19 @@ table tr td {
   display: inline;
 }
 
-.cusres_list {
+.course_list {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 1em;
 }
 
-.curse_item a {
+.course_item a {
   text-decoration: none;
   color: white;
 }
 
-.curse_item {
+.course_item {
 
   border: double red 4px;
   width: 230px;
@@ -444,14 +444,14 @@ table tr td {
 
 }
 
-.curse_body img {
+.course_body img {
 
   width: 180px;
   height: 200px;
 
 }
 
-.curse_header {
+.course_header {
   font: normal 200% 'Yanone Kaffeesatz', sans-serif;
 }
 
@@ -467,7 +467,7 @@ table tr td {
 
 }
 
-.curse_info {
+.course_info {
   display: flex;
   justify-content: space-between;
   gap: 7em;
@@ -481,6 +481,11 @@ table tr td {
   text-align: center;
 }
 
+.view_lists {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
 
 /* .curse_fotter { */
 /*   color: white; */

@@ -10,6 +10,14 @@ class NoNameSpaceFound(FrameWorkError):
         super().__init__(*args)
 
 
+class DuplicateNameSpace(FrameWorkError):
+    namespace: str
+
+    def __init__(self, namespace: str, *args) -> None:
+        self.namespace = namespace
+        super().__init__(*args)
+
+
 # ToDo: VVVVVVVVVVVVVVVVVVVVVVVV
 class NoCorrectViewReturnType(FrameWorkError):
     # by code 100-600
