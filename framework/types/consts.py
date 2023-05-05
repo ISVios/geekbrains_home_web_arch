@@ -1,3 +1,14 @@
+"""
+ViewEnv struct:
+    CurUrl - current url
+    HostUrl -  current host url
+    ARGS - parsed url args like ?x=1&y=2&z=0
+    NextCurUrl - change CurUrl in next loop (one way)
+    NextNameSpace - change CurUrl from NameSpace in next loop (one way)
+    RouterArgs - args of router func
+
+
+"""
 import logging
 import re
 

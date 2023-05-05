@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+    <div id="content">
+        <!-- insert the page content here -->
+        {% if True %}
+            <h1>Course Edit</h1>
+        {% else %}
+            <h1>Course Add</h1>
+        {% endif %}
+        <form action="#" method="post">
+            <div class="form_settings">
+                <p>
+                    <span>Name</span>
+                    <input class="contact" type="text" name="course_name" value="" />
+                </p>
+                <p>
+                    <span>Category</span>
+                    <select multiple>
+                        {% for elm in [] %}
+                            <option>
+                                {{ elm }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </p>
+                <p>
+                    <span>Type</span>
+                    <select>
+                        {% for elm in ['record', 'interactive', 'offline'] %}
+                            <option>
+                                {{ elm }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </p>
+                <p style="padding-top: 15px">
+                    <span>&nbsp;</span>
+                    <input class="submit" type="submit" name="contact_submitted" value="submit" />
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}

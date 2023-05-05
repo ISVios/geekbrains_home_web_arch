@@ -93,7 +93,18 @@ class Router(FrontType):
             if not url in router_dict:
                 raise NoNameSpaceFound(url)
 
-            return view_env[consts.ViewEnv_NAMESPAGEPAGE][url]
+            url = view_env[consts.ViewEnv_NAMESPAGEPAGE][url]
+
+            sub = ""
+            # add kwds
+            for k, v in kwds.items():
+                sub += f"{k}={v}&"
+
+            sub = sub[:-1]
+
+            # print(sub)
+
+            return url + "?" + sub
 
         def is_router(url, **kwds):
             """
@@ -107,6 +118,21 @@ class Router(FrontType):
         FunctionCalback(func=router)(sys_env, view_env, config, **kwds)
         FunctionCalback(func=is_router)(sys_env, view_env, config, **kwds)
         return view_env
+
+
+class UrlJump(FrontType):
+    def front_action(
+        self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
+    ) -> ViewEnv:
+        def jump_url(url: str, **kwds):
+            sys_env["PATH_INFO"] = url
+
+        def jump_namespace(to_namespace: str, **kwds):
+            url = view_env[consts.ViewEnv_NAMESPAGEPAGE].get(to_namespace)
+            if url:
+                sys_env["PATH_INFO"] = url
+
+        return super().front_action(sys_env, view_env, config, **kwds)
 
 
 class Static(FrontType):

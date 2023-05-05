@@ -23,16 +23,15 @@ class FrameWork(metaclass=SingleToneType):
     fronts: set
     funcs: dict[str, Callable]
     config: dict
+    static_vars: dict
 
     def __init__(self) -> None:
         self.views = {}
         self.fronts = set()
         self.config = {}
 
-        # one init fronts
-        # logger
-
-        # media
+    def static_var(self, name: str, var):
+        self.static_vars[name] = var
 
     def register_views(self, view: ViewType, url: str, namespace: str):
         # have url "item/<value:type>"

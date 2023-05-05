@@ -125,6 +125,8 @@ class ViewResult:
         self.code = code
         self.data = render(template_name, folder, **self.env.to_dict())
 
+    # Think: jump_to_url(sub_args) | jump_to_namespace(sub_args)
+
 
 ##
 # ToDo: add OnlyGetView interface

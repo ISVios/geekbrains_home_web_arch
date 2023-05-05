@@ -65,8 +65,24 @@ class Category:
     courses: set
 
     def __init__(self, name, courses):
-        self._index = self.__ID
-        self.__ID += 1
+        self._index = Category.__ID
+        Category.__ID += 1
+        self.name = name
+
+    @property
+    def index(self):
+        return self._index
+
+    @index.setter
+    def index(self, _):
+        # Todo: add  error logger
+        pass
+
+    def copy(self):
+        return Category(self.name, [])
+
+    def __str__(self) -> str:
+        return f"Ctegory[{self._index}]:{self.name}"
 
 
 class CourseBase:
@@ -81,12 +97,20 @@ class Course(CourseBase, abc.ABC):
     name: str
 
     def __init__(self, name: str, category: list):
-        self._index = self.__ID
+        self._index = Course.__ID
         self.category = set()
-        self.__ID += 1
-
+        Course.__ID += 1
         self.name = name
         self.category.update(category)
+
+    @property
+    def index(self):
+        return self._index
+
+    @index.setter
+    def index(self, _):
+        # Todo: add  error logger
+        pass
 
 
 class InteractiveCourse(Course):
@@ -131,6 +155,17 @@ class SiteApi(metaclass=SingleToneType):
     def create_course(type_: CourseFabric, name, category=[]):
         return CourseFabric._create(type_, name, category)
 
+    @staticmethod
+    def create_category(name: str):
+        category = Category(name, [])
+        return category
+
+    def get_category_by_id(self, index):
+        for elm in self.category:
+            if elm.index == index:
+                return elm
+        return None
+
 
 # urls
 class Index(ViewType):
@@ -171,11 +206,60 @@ class CourseItem(ViewType):
 
 class CourseForm(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        result.render_with_code(200, "course_form.html", "./simplestyle_8")
         return super().view(view_env, config, result, **kwds)
 
 
 class CoursesCopper(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        return super().view(view_env, config, result, **kwds)
+
+
+class CategoryForm(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        if view_env[consts.ViewEnv_METHOD] == "POST":
+            data = view_env[consts.ViewEnv_ARGS]
+            if data:
+                if data.get("action") == "create":
+                    category = Category(data["category_name"], [])
+                    SiteApi().category.append(category)
+                elif data.get("action") == "edit":
+                    category = SiteApi().get_category_by_id(int(data.get("id", -1)))
+                    if category:
+                        category.name = view_env[consts.ViewEnv_ARGS].get(
+                            "category_name"
+                        )
+
+                result.render_with_code(200, "admin.html", "./simplestyle_8")
+                return
+        elif view_env[consts.ViewEnv_METHOD] == "GET":
+            action = view_env[consts.ViewEnv_ARGS].get("action") or "create"
+            view_env["action_text"] = action
+            view_env[
+                "action"
+            ] = f"<input type='hidden' name='action' value='{action}' />"
+            index = int(view_env[consts.ViewEnv_ARGS].get("id") or -1)
+            category = SiteApi().get_category_by_id(index)
+            if category:
+                view_env["category_name"] = category.name
+
+                view_env[
+                    "id"
+                ] = f"<input type='hidden' name='id' value='{category.index}' />"
+
+                if view_env[consts.ViewEnv_ARGS].get("action") == "delete":
+                    SiteApi().category.remove(category)
+
+                    result.render_with_code(200, "admin.html", "./simplestyle_8")
+                    return
+                elif view_env[consts.ViewEnv_ARGS].get("action") == "copy":
+                    copy_category = category.copy()
+                    copy_category.name += " (copy)"
+                    SiteApi().category.append(copy_category)
+                    result.render_with_code(200, "admin.html", "./simplestyle_8")
+                    return
+
+        result.render_with_code(200, "category_form.html", "./simplestyle_8")
         return super().view(view_env, config, result, **kwds)
 
 
@@ -188,12 +272,12 @@ class Contact(ViewType):
 # fronts
 
 
-# class SiteLogicFront(FrontType):
-#     def front_action(
-#         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
-#     ) -> ViewEnv:
-#         view_env["SiteLogic"] = SiteApi()
-#         return super().front_action(sys_env, view_env, config, **kwds)
+class SiteLogicFront(FrontType):
+    def front_action(
+        self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
+    ) -> ViewEnv:
+        view_env["SiteLogic"] = SiteApi()
+        return super().front_action(sys_env, view_env, config, **kwds)
 
 
 class Date(FrontType):
@@ -232,8 +316,11 @@ if __name__ == "__main__":
     framework.register_views(CourseItem(), "/course_item/", "course_item")
     framework.register_views(CourseForm(), "/course_form/", "course_form")
 
+    framework.register_views(CategoryForm(), "/category_form/", "category_form")
+
     # fronts
     # framework.register_front(Date())
     # framework.register_front(Urls())
+    framework.register_front(SiteLogicFront())
 
     FrameWork.run_server(DEF_ADR, DEF_PORT)

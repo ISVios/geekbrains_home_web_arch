@@ -487,6 +487,11 @@ table tr td {
   justify-content: space-between;
 }
 
+
+.admin_item_list {
+  list-style-type: none;
+}
+
 /* .curse_fotter { */
 /*   color: white; */
 /* } */
