@@ -5,8 +5,8 @@
             <li {% if is_router('main') %} class="current" {% endif %}>
                 <a href={{ router('main') }}>Home</a>
             </li>
-            <li {% if is_router('courses') %} class="current" {% endif %}>
-                <a href={{ router('courses') }}>Curses</a>
+            <li {% if is_router('courses_list') %} class="current" {% endif %}>
+                <a href={{ router('courses_list') }}>Curses List</a>
             </li>
             {% if True %}
                 <li {% if is_router('login') %} class="current" {% endif %}>

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+    <div id="content">
+        <h1>Courses</h1>
+        <div class="cousres_list">
+            {% for curse_item in curses %}
+                <div class="curse_item">
+                    <a href={{ router('course_item') }}>
+                        <div class="course_header">Course #{{ course_item.id }}</div>
+                        <div class="course_type">CourseType</div>
+                        <div class="course_body">
+                            <img src={{ static('style/graphic.png') }} alt="courses_image" />
+                        </div>
+                        <div class="course_fotter">Positive: 0 | Negative: 0</div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock content %}

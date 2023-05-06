@@ -29,6 +29,7 @@ class FrameWork(metaclass=SingleToneType):
         self.views = {}
         self.fronts = set()
         self.config = {}
+        self.static_vars = {}
 
     def static_var(self, name: str, var):
         self.static_vars[name] = var
@@ -69,10 +70,14 @@ class FrameWork(metaclass=SingleToneType):
             # )
 
             view: ViewType = NoFoundPage()
-            if url in self.views:
-                view = self.views[url][0]
+            url_without_args = url.split("?")[0]
+            if url_without_args in self.views:
+                view = self.views[url_without_args][0]
 
             view_env = ViewEnv()
+
+            # add static_var
+            view_env[consts.ViewEnv_StaticVar] = self.static_vars
 
             # buildin fronts
             buildin_front = [
@@ -106,20 +111,21 @@ class FrameWork(metaclass=SingleToneType):
             if view_env.get("MediaStaicFileView") and view_env["MediaStaicFileView"]:
                 view = MediaStaicFileView()
 
-            args = view_env.get(consts.ViewEnv_ARGS) or {}
-            if args:
-                if method.upper() == "GET":
-                    # view_env.logger.debug
-                    print(f"GET method with {args}")
-                elif method.upper() == "POST":
-                    # view_env.logger.debug
-                    print(f"POST method with {args}")
+            # args = view_env.get(consts.ViewEnv_ARGS) or {}
+            # if args:
+            #     if method.upper() == "GET":
+            #         # view_env.logger.debug
+            #         print(f"GET method with {args}")
+            #     elif method.upper() == "POST":
+            #         # view_env.logger.debug
+            #         print(f"POST method with {args}")
 
             view_result = ViewResult(view_env)
             # sys_env - don`t must be in view_env
             view(view_env, self.config, view_result)
             response(
-                str(view_result.code) + " ", [("Content-Type", view_result.data_type)]
+                str(view_result.code) +
+                " ", [("Content-Type", view_result.data_type)]
             )
 
             if view_result.is_text:

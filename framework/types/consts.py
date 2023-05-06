@@ -25,6 +25,7 @@ ViewEnv_LOGGER = "Logger"
 ViewEnv_ARGS = "Args"
 ViewEnv_NAMESPAGEPAGE = "NameSpace"
 ViewEnv_METHOD = "Method"
+ViewEnv_StaticVar = "StaticVar"
 
 # ViewEnv Func name
 ViewEnv_BREAKPOINT = "breakpoint"

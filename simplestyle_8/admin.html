@@ -8,67 +8,30 @@
     <div id="content">
         <h1>Admin panel</h1>
         <div class="view_lists">
-            <!-- <div class="curses_list"> -->
-            <!--     <h2>Curses List</h2> -->
-            <!--     <ul> -->
-            <!--         {% for curse_item in curses %} -->
-            <!--             <li> -->
-            <!--                 <p>{{ course_item.name }}</p> -->
-            <!--                 <p> -->
-            <!--                     <a href="#">Edit</a>| -->
-            <!--                     <a href="#">Clone</a>| -->
-            <!--                     <a href="#">Delete</a>| -->
-            <!--                 </p> -->
-            <!--             </li> -->
-            <!--         {% endfor %} -->
-            <!--     </ul> -->
-            <!--     <a href={{ router('course_form', action='create') }}>add Curses</a> -->
-            <!-- </div> -->
-            <div class="category_list">
-                <h2>Category List</h2>
-                <ul class="admin_item_list">
-                    {% for category_item in SiteLogic.category %}
-                        <li>
-                            {{ category_item }}
-                            <p>{{ category_item.name }}</p>
-                            <p>
-                                <a href={{ router('category_form', action='edit', id=category_item.index) }}>Edit</a>|
-                                <a href={{ router('category_form', action='copy', id=category_item.index) }}>Copy</a>|
-                                <a href={{ router('category_form', action='delete', id=category_item.index) }}>Delete</a>
-                            </p>
-                        </li>
-                    {% endfor %}
-                </ul>
-                <a href={{ router('category_form', action='create') }}>add Category</a>
-            </div>
-            <div class="students_list">
-                <h2>Students List</h2>
-                <ul>
-                    {% for students_list in SiteLogic.students %}
-                        <li>
-                            <p>{{ category_item.name }}</p>
-                            <p>
-                                <!-- <a href={{ router_url('category_form', action='edit') }}>Edit</a>|<a href="#">Delete</a> -->
-                            </p>
-                        </li>
-                    {% endfor %}
-                </ul>
-                <!-- <a href={{ router('category_form', action='create') }}>add Student</a> -->
-            </div>
-            <div class="teacher_list">
-                <h2>Teacher List</h2>
-                <ul>
-                    {% for teacher_list in SiteLogic.teachers %}
-                        <li>
-                            <p>{{ category_item.name }}</p>
-                            <p>
-                                <!-- <a href="#">Edit</a>|<a href="#">Delete</a> -->
-                            </p>
-                        </li>
-                    {% endfor %}
-                </ul>
-                <!-- <a href={{ router('course_form', action='create') }}>add Teacher</a> -->
-            </div>
+            {% for admin_item in [
+                (SiteLogic.category, 'category'),
+                (SiteLogic.courses, 'courses'),
+                (SiteLogic.teachers, 'teachers'),
+                (SiteLogic.students, 'students')
+                ] %}
+                <div class="category_list">
+                    <h2>{{ admin_item[1] }}</h2>
+                    <ul class="admin_item_list">
+                        {% for item in admin_item[0] %}
+                            <li>
+                                <p>{{ item.name }}</p>
+                                <p>
+                                    <a href={{ router( admin_item[1] + '_edit', id=item.index) }}>Edit</a>|
+                                    <a href={{ router(admin_item[1] + '_copy', id=item.index) }}>Copy</a>|
+                                    <a href={{ router( admin_item[1] + '_delete', id=item.index) }}>Delete</a>
+                                </p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <a href={{ router(admin_item[1] + '_add') }}>add</a>
+                </div>
+            {% endfor %}
         </div>
     </div>
+</div>
 {% endblock content %}

@@ -110,10 +110,11 @@ class Router(FrontType):
             """
             test current url with router('url')
             """
-            router_url = router(url)
+            url_without_args = url.split("?")[0]
+            router_url = router(url_without_args)
             cur_url = view_env[consts.ViewEnv_CUR_URL]
 
-            return cur_url == router_url
+            return cur_url.split("?")[0] == router_url.split("?")[0]
 
         FunctionCalback(func=router)(sys_env, view_env, config, **kwds)
         FunctionCalback(func=is_router)(sys_env, view_env, config, **kwds)

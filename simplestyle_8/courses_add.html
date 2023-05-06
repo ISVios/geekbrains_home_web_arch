@@ -15,22 +15,19 @@
                 </p>
                 <p>
                     <span>Category</span>
-                    <select multiple>
-                        {% for elm in [] %}
-                            <option>
-                                {{ elm }}
+                    <select multiple  name="category">
+                        {% for elm in SiteLogic.category %}
+                            <option value={{ elm.index }}>
+                                {{ elm.name }}
                             </option>
                         {% endfor %}
                     </select>
                 </p>
                 <p>
                     <span>Type</span>
-                    <select>
-                        {% for elm in ['record', 'interactive', 'offline'] %}
-                            <option>
-                                {{ elm }}
-                            </option>
-                        {% endfor %}
+                    <select name="course_type">
+                        {# ToDo: type #}
+                        {% for elm in ['record', 'interactive', 'offline'] %}<option>{{ elm }}</option>{% endfor %}
                     </select>
                 </p>
                 <p style="padding-top: 15px">

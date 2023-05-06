@@ -6,7 +6,10 @@ from framework.types import ViewEnv, ViewResult, ViewType, consts
 
 class NoFoundPage(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        result(400, "<h1>Page NoFoundPage<h1>")
+        output = "<h1>NoFoundPage</h1>"
+        if config.get(consts.DEBUG):
+            output += f"<p>{view_env.to_dict()}</p>"
+        result(400, output)
 
 
 class ErrorMessage(ViewType):

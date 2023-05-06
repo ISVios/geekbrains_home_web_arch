@@ -12,6 +12,9 @@ class TypedDict:
     def to_dict(self) -> dict:
         return self.__typed_dict
 
+    def __iter__(self):
+        return self.__typed_dict.__iter__()
+
     def get(self, __name: str, no_key_found=None):
         if not __name in self.__typed_dict:
             return no_key_found
@@ -38,6 +41,10 @@ class ViewEnv(TypedDict):
     @property
     def logger(self) -> "Logger":
         return self[consts.ViewEnv_LOGGER]
+
+    @property
+    def static_vars(self) -> dict:
+        return self[consts.ViewEnv_StaticVar]
 
     # ToDo: add property
     #  url

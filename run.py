@@ -11,6 +11,7 @@ from enum import Enum
 
 from framework import FrameWork, FrontType, SysEnv, ViewEnv, ViewResult, ViewType
 from framework.types import consts
+from framework.types.types import ViewEnv, ViewResult
 from framework.utils.patterns import SingleToneType
 
 DEF_ADR = "0.0.0.0"
@@ -82,7 +83,10 @@ class Category:
         return Category(self.name, [])
 
     def __str__(self) -> str:
-        return f"Ctegory[{self._index}]:{self.name}"
+        return f"Category[{self._index}]:{self.name}"
+
+    def __repr__(self) -> str:
+        return f"Category[{self._index}]:{self.name}"
 
 
 class CourseBase:
@@ -191,76 +195,173 @@ class Admin(ViewType):
         return super().view(view_env, config, result, **kwds)
 
 
-class Courses(ViewType):
+# TEACHER
+class TeacherAdd(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        pass
+
+
+class TeacherEdit(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        pass
+
+
+class TeacherDelete(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        pass
+
+
+class TeacherCopy(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        pass
+# STUDENT
+
+
+class StudentAdd(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        pass
+
+
+class StudentEdit(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        pass
+
+
+class StudentDelete(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        pass
+
+
+class StudentCopy(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        pass
+# COURSE
+
+
+class CoursesList(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         view_env["courses"] = SiteApi().courses
-        result.render_with_code(200, "courses.html", "./simplestyle_8")
+        result.render_with_code(200, "courses_list.html", "./simplestyle_8")
         return super().view(view_env, config, result, **kwds)
 
 
 class CourseItem(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        result.render_with_code(200, "course_item.html", "./simplestyle_8")
+        result.render_with_code(200, "courses_item.html", "./simplestyle_8")
         return super().view(view_env, config, result, **kwds)
 
 
-class CourseForm(ViewType):
+class CoursesAdd(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        method = view_env[consts.ViewEnv_METHOD]
+        args = view_env[consts.ViewEnv_ARGS]
+        if method == "POST":
+            course_type = args.get("course_type")
+            course = None
+            if course_type == "record":
+                course = CourseFabric._create(CourseFabric.Records, "", [])
+
+            result.render_template("admin.html", "./simplestyle_8")
+        elif method == "GET":
+            result.render_with_code(
+                200, "courses_add.html", "./simplestyle_8")
+
+
+class CoursesEdit(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        result.render_with_code(200, "admin.html", "./simplestyle_8")
+        return super().view(view_env, config, result, **kwds)
+
+
+class CoursesDelete(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        result.render_with_code(200, "admin.html", "./simplestyle_8")
+        return super().view(view_env, config, result, **kwds)
+
+
+class CoursesForm(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         result.render_with_code(200, "course_form.html", "./simplestyle_8")
         return super().view(view_env, config, result, **kwds)
 
 
-class CoursesCopper(ViewType):
+class CoursesCopy(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         return super().view(view_env, config, result, **kwds)
 
+# CATEGORY
 
-class CategoryForm(ViewType):
+
+class CategoryAdd(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        if view_env[consts.ViewEnv_METHOD] == "POST":
-            data = view_env[consts.ViewEnv_ARGS]
-            if data:
-                if data.get("action") == "create":
-                    category = Category(data["category_name"], [])
-                    SiteApi().category.append(category)
-                elif data.get("action") == "edit":
-                    category = SiteApi().get_category_by_id(int(data.get("id", -1)))
-                    if category:
-                        category.name = view_env[consts.ViewEnv_ARGS].get(
-                            "category_name"
-                        )
+        method = view_env[consts.ViewEnv_METHOD]
+        if method == "POST":
+            category_name = view_env[consts.ViewEnv_ARGS].get("category_name")
+            if category_name:
+                category = Category(category_name, [])
+                SiteApi().category.append(category)
+                result.code = 200
+            else:
+                result.code = 400
+            result.render_template("admin.html", "./simplestyle_8")
+        elif method == "GET":
+            result.render_with_code(
+                200, "category_add.html", "./simplestyle_8")
 
-                result.render_with_code(200, "admin.html", "./simplestyle_8")
-                return
-        elif view_env[consts.ViewEnv_METHOD] == "GET":
-            action = view_env[consts.ViewEnv_ARGS].get("action") or "create"
-            view_env["action_text"] = action
-            view_env[
-                "action"
-            ] = f"<input type='hidden' name='action' value='{action}' />"
-            index = int(view_env[consts.ViewEnv_ARGS].get("id") or -1)
-            category = SiteApi().get_category_by_id(index)
-            if category:
-                view_env["category_name"] = category.name
 
-                view_env[
-                    "id"
-                ] = f"<input type='hidden' name='id' value='{category.index}' />"
+class CategoryEdit(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        method = view_env[consts.ViewEnv_METHOD]
+        index = int(view_env[consts.ViewEnv_ARGS].get("id") or "-1")
+        category_list = SiteApi().category
+        category = SiteApi().get_category_by_id(index)
 
-                if view_env[consts.ViewEnv_ARGS].get("action") == "delete":
-                    SiteApi().category.remove(category)
+        if method == "POST":
+            if view_env.static_vars.get("category"):
+                category = view_env.static_vars["category"]
+                del view_env.static_vars["category"]
 
-                    result.render_with_code(200, "admin.html", "./simplestyle_8")
-                    return
-                elif view_env[consts.ViewEnv_ARGS].get("action") == "copy":
-                    copy_category = category.copy()
-                    copy_category.name += " (copy)"
-                    SiteApi().category.append(copy_category)
-                    result.render_with_code(200, "admin.html", "./simplestyle_8")
-                    return
+        if not category:
+            result.render_with_code(400, "admin.html", "./simplestyle_8")
+            return
 
-        result.render_with_code(200, "category_form.html", "./simplestyle_8")
-        return super().view(view_env, config, result, **kwds)
+        if method == "POST":
+            category.name = view_env[consts.ViewEnv_ARGS].get("category_name")
+            result.render_with_code(
+                200, "admin.html", "./simplestyle_8")
+            return
+        elif method == "GET":
+            view_env["category_name"] = category.name
+            view_env.static_vars["category"] = category
+
+            result.render_with_code(
+                200, "category_add.html", "./simplestyle_8")
+
+
+class CategoryCopy(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        index = int(view_env[consts.ViewEnv_ARGS].get("id"))
+        category_list = SiteApi().category
+        category = SiteApi().get_category_by_id(index)
+        if category:
+            copy = category.copy()
+            copy.name += " (copy)"
+            category_list.append(copy)
+
+        result.render_with_code(
+            200, "admin.html", "./simplestyle_8")
+
+
+class CategoryDelete(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        index = int(view_env[consts.ViewEnv_ARGS].get("id"))
+        category_list = SiteApi().category
+        category = SiteApi().get_category_by_id(index)
+        if category:
+            category_list.remove(category)
+
+        result.render_with_code(
+            200, "admin.html", "./simplestyle_8")
 
 
 class Contact(ViewType):
@@ -312,12 +413,39 @@ if __name__ == "__main__":
     framework.register_views(Contact(), "/contact/", "contact")
     framework.register_views(Login(), "/login/", "login")
 
-    framework.register_views(Courses(), "/courses/", "courses")
-    framework.register_views(CourseItem(), "/course_item/", "course_item")
-    framework.register_views(CourseForm(), "/course_form/", "course_form")
+    # TEACHER
+    framework.register_views(TeacherAdd(), "/teachers/add/", "teachers_add")
+    framework.register_views(
+        TeacherEdit(), "/teachers/edit/", "teachers_edit")
+    framework.register_views(
+        TeacherDelete(), "/teachers/delete/", "teachers_delete")
+    framework.register_views(
+        TeacherCopy(), "/teacher/copy/", "teachers_copy")
+    # STUDENT
+    framework.register_views(StudentAdd(), "/students/add/", "students_add")
+    framework.register_views(
+        StudentEdit(), "/students/edit/", "students_edit")
+    framework.register_views(
+        StudentDelete(), "/students/delete/", "students_delete")
+    framework.register_views(
+        StudentCopy(), "/teacher/copy/", "students_copy")
 
-    framework.register_views(CategoryForm(), "/category_form/", "category_form")
+    # CATEGORY
+    framework.register_views(CategoryAdd(), "/category/add/", "category_add")
+    framework.register_views(
+        CategoryEdit(), "/category/edit/", "category_edit")
+    framework.register_views(
+        CategoryDelete(), "/category/delete/", "category_delete")
+    framework.register_views(
+        CategoryCopy(), "/category/copy/", "category_copy")
 
+    # COURSES
+    framework.register_views(CoursesList(), "/courses/", "courses_list")
+    framework.register_views(CoursesAdd(), "/courses/add/", "courses_add")
+    framework.register_views(CoursesEdit(), "/courses/edit/", "courses_edit")
+    framework.register_views(
+        CoursesDelete(), "/courses/delete/", "courses_delete")
+    #
     # fronts
     # framework.register_front(Date())
     # framework.register_front(Urls())
