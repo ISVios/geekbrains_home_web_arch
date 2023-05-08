@@ -1,77 +1,225 @@
 """
 
 """
-
-from os import name
+from typing import Type, Any
+import unittest
+import abc
 from framework.types import consts
+from framework.types import ViewType, ViewEnv
 
-from typing import Any, Type
+
+class UrlNodeProto(abc.ABC):
+    _namespace: str | None
+    _view: ViewType | None
+    _childrens: set["UrlNodeProto"]
+    _url: str | None
+
+    def __init__(self):
+        self._view = None
+        self._namespace = None
+        self._url = None
+
+    def add_node(self, node):
+        if not hasattr(self, "_childrens"):
+            self._childrens = set()
+
+        self._childrens.add(node)
+
+    @property
+    def namespace(self) -> str | None:
+        return self._namespace
+
+    @namespace.setter
+    def namespace(self, value: str):
+        if self._namespace:
+            raise NotImplementedError("try change exist namespace for url")
+
+        self._namespace = value
+
+    @property
+    def view(self):
+        return self._view
+
+    @view.setter
+    def view(self, value):
+        if self._view:
+            raise NotImplementedError("try change exist view for url")
+
+        self._view = value
+
+    def get_childrens(self) -> list["UrlNodeProto"]:
+        if not hasattr(self, "_childrens"):
+            return []
+        return list(self._childrens)
+
+    def get_all_urls(self):
+
+        if not hasattr(self, "_childrens"):
+            return []
+        return [[ch._url, *ch.get_all_urls()] for ch in self._childrens]
 
 
-# class UrlNodeProto:
-#     childrens: set["UrlNodeProto"]
-#     # url: "Any"
-#     # namespace: str | None
-#
-#     def create(self, url_lst:list[str]):
-#
-#
-#     def add_childern(self, node: "UrlNodeProto"):
-#         self.childrens.add(node)
-#
-#     def get_all_childrens(self) -> list["UrlNodeProto"]:
-#         return list(self.childrens)
-#
-#     def find(self, url_str_lst: list[str]) -> "UrlNodeProto|None":
-#         # get url_str_lst[0]
-#         # find in childrens
-#         # if find return
-#         return None
-#
-#
-# class UrlNode(UrlNodeProto):
-#
-#     def __init__(self, url: str, namespace: str | None = None) -> None:
-#         self.url = url
-#         self.namespace = namespace
-#
-#
-# class UrlVar(UrlNodeProto):
-#     name: str
-#     type_: Type
-#
-#     def __init__(self, var_name: str, var_type: Type = str, namespace: str | None = None) -> None:
-#         self.name = var_name
-#         self.type_ = var_type
-#         self.namespace = namespace
-#
-#
-# class UrlTreeNodeFabric:
-#
-#     @staticmethod
-#     def create(url_elm: str, namespace: str | None = None) -> "UrlNodeProto":
-#         re_url = consts.UrlTreeRe.search(url_elm)
-#         if not re_url:
-#             return UrlNode(url_elm, None)
-#
-#         re_url = re_url.groupdict()
-#
-#         return UrlVar(re_url["var"], re_url.get("type", "str"), namespace)
-#
-#
-# class UrlTree:
-#     __used_urls: set[str]
-#     __namespace: dict[str, UrlNodeProto]
-#     childrens: set[UrlNode]
-#
-#     def __init__(self) -> None:
-#         UrlTree.__used_urls = set()
-#         UrlTree.__namespace = {}
-#
-#     def register_views(self, view: ViewType, url: str, namespace: str):
-#         # cut param url if exitst
-#         url_ = url.split("?")[0]
-#
-#         url_lst = url.strip().split("/")
-#
-#         pass
+class UrlNode(UrlNodeProto):
+    def __repr__(self):
+        return f"UrlNode {self._url}:{self._namespace}"
+
+
+class UrlNodeVar(UrlNodeProto):
+    type_: Type
+
+    def __repr__(self):
+        return f"UrlVar {self._url} {self.type_}:{self._namespace}"
+
+
+class UrlNodeStr(UrlNodeVar):
+    pass
+
+
+class UrlNodeInt(UrlNodeVar):
+    pass
+
+
+class UrlNodeBuilder:
+    @staticmethod
+    def create_node(url_part: str):
+        # if var
+        url_parse = consts.UrlTreeRe.fullmatch(url_part)
+        node = None
+        if not url_parse:
+            node = UrlNode()
+            node._url = url_part
+            return node
+
+        url_parse = url_parse.groupdict()
+
+        if url_parse.get("type") == "int":
+            node = UrlNodeInt()
+            node.type_ = int
+        else:
+            node = UrlNodeStr()
+            node.type_ = str
+
+        node._url = "<" + (url_parse.get("var") or "") + ">"
+        return node
+
+
+class UrlTree:
+    __namespaces = {}
+    __vars = set()
+    _root: UrlNode
+    # root_namespace: str
+
+    def __init__(self) -> None:
+        self._root = UrlNode()
+
+    def by_url(self, url: str, view_env: ViewEnv):
+        return self._go_to_node(url, view_env=view_env)
+
+    def by_namespace(self, namespace: str):
+        return UrlTree.__namespaces.get(namespace, None)
+
+    def _go_to_node(self, url, view_env: ViewEnv, create_node: bool = False) -> UrlNodeProto | None:
+        # cut &* (url parm)
+        url_ = url.split("&")[0]
+
+        # del first and last /
+        if url_[-1] == "/":
+            url_ = url_[:-1]
+
+        if len(url_) > 0 and url_[0] == "/":
+            url_ = url_[1:]
+
+        url_str_lst = url_.strip().split("/")
+
+        cur_node = self._root
+
+        # only "/" -> root
+        if len(url_str_lst) == 1 and url_str_lst[0] == "":
+            self._root._url = "/"
+            return self._root
+
+        for url_ch in url_str_lst:
+            if url_ch == "":
+                raise NotImplementedError("dup //")
+            # if node if exist
+            find_exist = None
+            for ch in cur_node.get_childrens():
+                ch_type = type(ch)
+                if ch_type is UrlNode:
+                    if ch._url == url_ch:
+                        find_exist = ch
+                        break
+                elif ch_type is UrlNodeInt:
+                    print(ch_type is UrlNodeVar)
+                    try:
+                        covert = int(url_ch)
+                        if not ch._url in view_env[consts.ViewEnv_ARGS]:
+                            view_env[consts.ViewEnv_ARGS][ch._url] = covert
+                            raise NotImplementedError("dup url args name")
+                        print(f"add {ch._url} = {url_ch} to URL_ARGS")
+                        find_exist = ch
+                        break
+                    except ValueError as ve:
+                        pass
+                    except Exception as ex:
+                        raise ex
+                elif ch_type is UrlNodeStr:
+                    print(f"add {ch._url} = {url_ch} to URL_ARGS")
+                    view_env[consts.ViewEnv_ARGS][ch._url] = url_ch
+                    find_exist = ch
+                    break
+
+            if not find_exist:
+                if create_node:
+                    new_node = UrlNodeBuilder.create_node(url_ch)
+                    cur_node.add_node(new_node)
+                    cur_node = new_node
+                else:
+                    return None
+            else:
+                cur_node = find_exist
+
+        return cur_node
+
+    def register_views(self, view: ViewType, url: str, namespace: str):
+
+        # namespace is exist
+        if namespace in UrlTree.__namespaces:
+            raise NotImplementedError("dup namespace")
+
+        node = self._go_to_node(url, True)
+
+        if node:
+            node.namespace = namespace
+            node.view = view
+
+            UrlTree.__namespaces[namespace] = node
+
+    def print_urls(self):
+
+        return self._root.get_all_urls()
+
+
+if __name__ == "__main__":
+    class UrlTreeTest(unittest.TestCase):
+        def test__(self):
+            tree = UrlTree()
+            # tree.register_views("main_page", "/", "main")
+            # tree.register_views("contact", "/contact/", "contact")
+            # tree.register_views("contact", "/contact/some/b", "contact.b")
+            # tree.register_views("info_page", "/info/", "info")
+            # tree.register_views("add page", "/info/add/", "info.add")
+            # tree.register_views("info edit i elem",
+            #                     "/info/edit/<id:int>", "info.edit")
+            # tree.register_views(
+            #     "copy i elem", "/info/copy/<id:int>", "info.copy")
+            # tree.register_views(
+            #     "info str", "/info/edit/<name:str>", "info.str")
+            # print(tree.print_urls())
+            # print("/info/add/", tree.by_url("/info/add/"))
+            # print("/info/", tree.by_url("/info/"))
+            # print("/info/edit/4/", tree.by_url("/info/edit/4/"))
+            # print("/info/edit/milk/", tree.by_url("/info/edit/milk/"))
+            # print("/info/edit/milk/", tree.by_url("/info/edit/milk/"))
+            # print("some b", tree.by_url("/contact/some"))
+    unittest.main()

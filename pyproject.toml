@@ -22,6 +22,8 @@ ipdb = "^0.13.13"
 
 [tool.poetry.group.DEV.dependencies]
 djlint = "^1.25.0"
+ipython = "^8.13.2"
+ipdb = "^0.13.13"
 
 [build-system]
 requires = ["poetry-core"]
