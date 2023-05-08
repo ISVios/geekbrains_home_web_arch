@@ -79,6 +79,9 @@ class Category:
         # Todo: add  error logger
         pass
 
+    def add_course(self, course):
+        self.courses.add(course)
+
     def copy(self):
         return Category(self.name, [])
 
@@ -107,6 +110,10 @@ class Course(CourseBase, abc.ABC):
         self.name = name
         self.category.update(category)
 
+    @abc.abstractmethod
+    def course_type(self) -> str:
+        return None
+
     @property
     def index(self):
         return self._index
@@ -118,15 +125,19 @@ class Course(CourseBase, abc.ABC):
 
 
 class InteractiveCourse(Course):
-    pass
+
+    def course_type(self) -> str:
+        return "Interactive"
 
 
 class RecordsCourse(Course):
-    pass
+    def course_type(self) -> str:
+        return "Record"
 
 
 class MixCourse(Course):
-    pass
+    def course_type(self) -> str:
+        return "Mix"
 
 
 class CourseFabric(Enum):
@@ -241,6 +252,7 @@ class StudentCopy(ViewType):
 class CoursesList(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         view_env["courses"] = SiteApi().courses
+        print(SiteApi().courses)
         result.render_with_code(200, "courses_list.html", "./simplestyle_8")
         return super().view(view_env, config, result, **kwds)
 
@@ -253,13 +265,31 @@ class CourseItem(ViewType):
 
 class CoursesAdd(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        result.code = 400
         method = view_env[consts.ViewEnv_METHOD]
         args = view_env[consts.ViewEnv_ARGS]
         if method == "POST":
             course_type = args.get("course_type")
+            course_name = args.get("course_name")
+            course_category = args.get("course_category") or []
             course = None
             if course_type == "record":
-                course = CourseFabric._create(CourseFabric.Records, "", [])
+                course = CourseFabric._create(
+                    CourseFabric.Records, course_name, course_category)
+            elif course_type == "interactive":
+                course = CourseFabric._create(
+                    CourseFabric.Interactive, course_name, course_category)
+
+            if course:
+                result.code = 200
+                api = SiteApi()
+
+                for category_index in course_category:
+                    category = api.get_category_by_id(category_index)
+                    if category:
+                        category.add_course(course)
+
+                SiteApi().courses.append(course)
 
             result.render_template("admin.html", "./simplestyle_8")
         elif method == "GET":
@@ -279,15 +309,15 @@ class CoursesDelete(ViewType):
         return super().view(view_env, config, result, **kwds)
 
 
-class CoursesForm(ViewType):
-    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        result.render_with_code(200, "course_form.html", "./simplestyle_8")
-        return super().view(view_env, config, result, **kwds)
+# class CoursesForm(ViewType):
+#     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+#         result.render_with_code(200, "course_form.html", "./simplestyle_8")
+#         return super().view(view_env, config, result, **kwds)
 
 
 class CoursesCopy(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        return super().view(view_env, config, result, **kwds)
+        result.render_with_code(200, "admin.html", "./simplestyle_8")
 
 # CATEGORY
 
@@ -442,6 +472,7 @@ if __name__ == "__main__":
     # COURSES
     framework.register_views(CoursesList(), "/courses/", "courses_list")
     framework.register_views(CoursesAdd(), "/courses/add/", "courses_add")
+    framework.register_views(CoursesCopy(), "/courses/copy/", "courses_copy")
     framework.register_views(CoursesEdit(), "/courses/edit/", "courses_edit")
     framework.register_views(
         CoursesDelete(), "/courses/delete/", "courses_delete")

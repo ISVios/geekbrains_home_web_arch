@@ -12,6 +12,13 @@ ViewEnv struct:
 import logging
 import re
 
+UrlTreeRe = re.compile(r"^\<(?P<var>[^:]*)(:(?P<type>.*))?\>$")
+
+
+def Redirect_URL(
+    url: str, wait_sec: int = 0): return f"""<meta http-equiv="refresh" content="{wait_sec}; url='{url}'" />"""
+
+
 # const
 CONTENT_TYPE_HTML = "text/html"
 CONTENT_TYPE_CSS = "text/css"

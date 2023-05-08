@@ -1,6 +1,10 @@
 import abc
+import re
 import os
 from logging import Logger
+from re import split
+from typing import Any
+import unittest
 
 from framework.types import consts
 from framework.utils.render import render
@@ -132,7 +136,16 @@ class ViewResult:
         self.code = code
         self.data = render(template_name, folder, **self.env.to_dict())
 
-    # Think: jump_to_url(sub_args) | jump_to_namespace(sub_args)
+    # ToDo
+    def redirect_to_url(self, url: str, wait_sec: int = 0):
+        self.code = 200
+        self.data = f"""<script>window.location.replace("{url}");</script>"""
+
+    # ToDo
+    def redirect_to_namespace(self, namespace, *argv, **kwds):
+        pass
+        # self.code = 200
+        # self.data = f""" <meta http-equiv="refresh" content="{wait_sec} url = '{url}'" />"""
 
 
 ##

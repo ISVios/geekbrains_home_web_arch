@@ -2,12 +2,12 @@
 {% block content %}
     <div id="content">
         <h1>Courses</h1>
-        <div class="cousres_list">
-            {% for curse_item in curses %}
-                <div class="curse_item">
-                    <a href={{ router('course_item') }}>
-                        <div class="course_header">Course #{{ course_item.id }}</div>
-                        <div class="course_type">CourseType</div>
+        <div class="course_list">
+            {% for course_item in courses %}
+                <div class="course_item">
+                    <a href="#">
+                        <div class="course_header">{{ course_item.name }}</div>
+                        <div class="course_type">{{ course_item.course_type() }}</div>
                         <div class="course_body">
                             <img src={{ static('style/graphic.png') }} alt="courses_image" />
                         </div>

@@ -69,6 +69,7 @@ class FrameWork(metaclass=SingleToneType):
             #     MediaStaicFileView(), "/__static__/*", namespace="__static__"
             # )
 
+            # ToDo: switch to Tree
             view: ViewType = NoFoundPage()
             url_without_args = url.split("?")[0]
             if url_without_args in self.views:
