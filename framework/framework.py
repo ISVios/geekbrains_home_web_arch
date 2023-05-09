@@ -14,11 +14,13 @@ from framework.fronts import (
 )
 from framework.logger.logger import LoggerFront
 from framework.types import FrontType, SysEnv, ViewEnv, ViewResult, ViewType, consts
+from framework.types.url_tree import UrlTree
 from framework.views import NoFoundPage, MediaStaicFileView
 from framework.utils import SingleToneType
 
 
 class FrameWork(metaclass=SingleToneType):
+    tree: UrlTree
     views: dict[str, tuple[ViewType, str]]
     fronts: set
     funcs: dict[str, Callable]
@@ -26,6 +28,7 @@ class FrameWork(metaclass=SingleToneType):
     static_vars: dict
 
     def __init__(self) -> None:
+        self.tree = UrlTree()
         self.views = {}
         self.fronts = set()
         self.config = {}
@@ -35,6 +38,9 @@ class FrameWork(metaclass=SingleToneType):
         self.static_vars[name] = var
 
     def register_views(self, view: ViewType, url: str, namespace: str):
+
+        self.tree.register_views(view, url, namespace)
+
         # have url "item/<value:type>"
         all_namespace = self.get_register_namespace_url().keys()
 
@@ -70,12 +76,15 @@ class FrameWork(metaclass=SingleToneType):
             # )
 
             # ToDo: switch to Tree
-            view: ViewType = NoFoundPage()
-            url_without_args = url.split("?")[0]
-            if url_without_args in self.views:
-                view = self.views[url_without_args][0]
-
             view_env = ViewEnv()
+
+            node_view = self.tree.view_by_url(url.split("?")[0], view_env)
+            view = node_view or NoFoundPage()
+
+            # view: ViewType = NoFoundPage()
+            # url_without_args = url.split("?")[0]
+            # if url_without_args in self.views:
+            #     view = self.views[url_without_args][0]
 
             # add static_var
             view_env[consts.ViewEnv_StaticVar] = self.static_vars

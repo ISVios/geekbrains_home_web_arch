@@ -458,7 +458,7 @@ if __name__ == "__main__":
     framework.register_views(
         StudentDelete(), "/students/delete/", "students_delete")
     framework.register_views(
-        StudentCopy(), "/teacher/copy/", "students_copy")
+        StudentCopy(), "/students/copy/", "students_copy")
 
     # CATEGORY
     framework.register_views(CategoryAdd(), "/category/add/", "category_add")

@@ -1,6 +1,7 @@
 """
 
 """
+from re import T
 from typing import Type, Any
 import unittest
 import abc
@@ -112,13 +113,23 @@ class UrlTree:
     def __init__(self) -> None:
         self._root = UrlNode()
 
-    def by_url(self, url: str, view_env: ViewEnv):
-        return self._go_to_node(url, view_env=view_env)
+    def _node_by_url(self, url: str, view_env: ViewEnv):
+        return self._go_to_node(url, view_env)
 
-    def by_namespace(self, namespace: str):
+    def _node_by_namespace(self, namespace: str):
         return UrlTree.__namespaces.get(namespace, None)
 
-    def _go_to_node(self, url, view_env: ViewEnv, create_node: bool = False) -> UrlNodeProto | None:
+    def view_by_url(self, url: str, view_env: ViewEnv):
+        node = self._node_by_url(url, view_env)
+        if node and node.view:
+            return node.view
+
+    def view_by_namespace(self, namespace: str):
+        node = self._node_by_namespace(namespace)
+        if node and node.view:
+            return node.view
+
+    def _go_to_node(self, url, view_env: ViewEnv | None, create_node: bool = False) -> UrlNodeProto | None:
         # cut &* (url parm)
         url_ = url.split("&")[0]
 
@@ -153,9 +164,10 @@ class UrlTree:
                     print(ch_type is UrlNodeVar)
                     try:
                         covert = int(url_ch)
-                        if not ch._url in view_env[consts.ViewEnv_ARGS]:
-                            view_env[consts.ViewEnv_ARGS][ch._url] = covert
-                            raise NotImplementedError("dup url args name")
+                        if view_env:
+                            if not ch._url in view_env[consts.ViewEnv_ARGS]:
+                                view_env[consts.ViewEnv_ARGS][ch._url] = covert
+                                raise NotImplementedError("dup url args name")
                         print(f"add {ch._url} = {url_ch} to URL_ARGS")
                         find_exist = ch
                         break
@@ -165,7 +177,8 @@ class UrlTree:
                         raise ex
                 elif ch_type is UrlNodeStr:
                     print(f"add {ch._url} = {url_ch} to URL_ARGS")
-                    view_env[consts.ViewEnv_ARGS][ch._url] = url_ch
+                    if view_env:
+                        view_env[consts.ViewEnv_ARGS][ch._url] = url_ch
                     find_exist = ch
                     break
 
@@ -187,7 +200,7 @@ class UrlTree:
         if namespace in UrlTree.__namespaces:
             raise NotImplementedError("dup namespace")
 
-        node = self._go_to_node(url, True)
+        node = self._go_to_node(url, None, True)
 
         if node:
             node.namespace = namespace
@@ -195,31 +208,6 @@ class UrlTree:
 
             UrlTree.__namespaces[namespace] = node
 
-    def print_urls(self):
+    def urls(self):
 
         return self._root.get_all_urls()
-
-
-if __name__ == "__main__":
-    class UrlTreeTest(unittest.TestCase):
-        def test__(self):
-            tree = UrlTree()
-            # tree.register_views("main_page", "/", "main")
-            # tree.register_views("contact", "/contact/", "contact")
-            # tree.register_views("contact", "/contact/some/b", "contact.b")
-            # tree.register_views("info_page", "/info/", "info")
-            # tree.register_views("add page", "/info/add/", "info.add")
-            # tree.register_views("info edit i elem",
-            #                     "/info/edit/<id:int>", "info.edit")
-            # tree.register_views(
-            #     "copy i elem", "/info/copy/<id:int>", "info.copy")
-            # tree.register_views(
-            #     "info str", "/info/edit/<name:str>", "info.str")
-            # print(tree.print_urls())
-            # print("/info/add/", tree.by_url("/info/add/"))
-            # print("/info/", tree.by_url("/info/"))
-            # print("/info/edit/4/", tree.by_url("/info/edit/4/"))
-            # print("/info/edit/milk/", tree.by_url("/info/edit/milk/"))
-            # print("/info/edit/milk/", tree.by_url("/info/edit/milk/"))
-            # print("some b", tree.by_url("/contact/some"))
-    unittest.main()

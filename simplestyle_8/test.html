@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}
+    Test page
+{% endblock title %}
+{% block content %}
+    <div id="content">
+        <p>{{ router('main') }}</p>
+        <p>{{ router('main', 1) }}</p>
+    </div>
+{% endblock content %}
