@@ -13,6 +13,7 @@ from framework import FrameWork, FrontType, SysEnv, ViewEnv, ViewResult, ViewTyp
 from framework.types import consts
 from framework.types.types import ViewEnv, ViewResult
 from framework.utils.patterns import SingleToneType
+from framework.utils.decorators import debug, to_url
 
 DEF_ADR = "0.0.0.0"
 DEF_PORT = 8080
@@ -64,6 +65,7 @@ class Category:
     _index: int
     name: str
     courses: set
+    sub_category: set | None
 
     def __init__(self, name, courses):
         self._index = Category.__ID
@@ -78,6 +80,12 @@ class Category:
     def index(self, _):
         # Todo: add  error logger
         pass
+
+    def add_subcategory(self, category):
+        if not self.sub_category:
+            self.sub_category = set()
+
+        self.sub_category.add(category)
 
     def add_course(self, course):
         self.courses.add(course)
@@ -184,8 +192,8 @@ class SiteApi(metaclass=SingleToneType):
 
 # urls
 class Index(ViewType):
+    @debug
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        view_env.logger.critical("Hi from logger")
         result.render_with_code(200, "index.html", "./simplestyle_8")
 
 
@@ -400,6 +408,12 @@ class Contact(ViewType):
         result.render_template("contact.html", "./simplestyle_8")
 
 
+@to_url("/test2", "test2")
+@debug
+def like_flask(view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+    result.code=200
+    result.data="view 'like' in flask"
+
 # fronts
 
 
@@ -423,6 +437,7 @@ class Urls(FrontType):
     def front_action(self, sys_env: dict, view_env: dict, config: dict, **kwds) -> dict:
         view_env["urls"] = FrameWork.get_framework().get_register_urls()
         return view_env
+
 
 
 if __name__ == "__main__":
