@@ -71,6 +71,7 @@ class Category:
         self._index = Category.__ID
         Category.__ID += 1
         self.name = name
+        self.courses = set()
 
     @property
     def index(self):
@@ -89,6 +90,9 @@ class Category:
 
     def add_course(self, course):
         self.courses.add(course)
+
+    def count_course(self) -> int:
+        return len(self.courses)
 
     def copy(self):
         return Category(self.name, [])
@@ -133,7 +137,6 @@ class Course(CourseBase, abc.ABC):
 
 
 class InteractiveCourse(Course):
-
     def course_type(self) -> str:
         return "Interactive"
 
@@ -233,6 +236,8 @@ class TeacherDelete(ViewType):
 class TeacherCopy(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         pass
+
+
 # STUDENT
 
 
@@ -254,13 +259,14 @@ class StudentDelete(ViewType):
 class StudentCopy(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         pass
+
+
 # COURSE
 
 
 class CoursesList(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         view_env["courses"] = SiteApi().courses
-        print(SiteApi().courses)
         result.render_with_code(200, "courses_list.html", "./simplestyle_8")
         return super().view(view_env, config, result, **kwds)
 
@@ -273,27 +279,31 @@ class CourseItem(ViewType):
 
 class CoursesAdd(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        view_env["SiteLogic"] = SiteApi()
+        view_env["category_list"] = SiteApi().category
         result.code = 400
         method = view_env[consts.ViewEnv_METHOD]
         args = view_env[consts.ViewEnv_ARGS]
         if method == "POST":
             course_type = args.get("course_type")
             course_name = args.get("course_name")
-            course_category = args.get("course_category") or []
+            course_category = args.get("category") or []
             course = None
             if course_type == "record":
                 course = CourseFabric._create(
-                    CourseFabric.Records, course_name, course_category)
+                    CourseFabric.Records, course_name, course_category
+                )
             elif course_type == "interactive":
                 course = CourseFabric._create(
-                    CourseFabric.Interactive, course_name, course_category)
+                    CourseFabric.Interactive, course_name, course_category
+                )
 
             if course:
                 result.code = 200
                 api = SiteApi()
 
                 for category_index in course_category:
-                    category = api.get_category_by_id(category_index)
+                    category = api.get_category_by_id(int(category_index))
                     if category:
                         category.add_course(course)
 
@@ -301,8 +311,7 @@ class CoursesAdd(ViewType):
 
             result.render_template("admin.html", "./simplestyle_8")
         elif method == "GET":
-            result.render_with_code(
-                200, "courses_add.html", "./simplestyle_8")
+            result.render_with_code(200, "courses_add.html", "./simplestyle_8")
 
 
 class CoursesEdit(ViewType):
@@ -327,6 +336,7 @@ class CoursesCopy(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         result.render_with_code(200, "admin.html", "./simplestyle_8")
 
+
 # CATEGORY
 
 
@@ -343,8 +353,7 @@ class CategoryAdd(ViewType):
                 result.code = 400
             result.render_template("admin.html", "./simplestyle_8")
         elif method == "GET":
-            result.render_with_code(
-                200, "category_add.html", "./simplestyle_8")
+            result.render_with_code(200, "category_add.html", "./simplestyle_8")
 
 
 class CategoryEdit(ViewType):
@@ -365,15 +374,13 @@ class CategoryEdit(ViewType):
 
         if method == "POST":
             category.name = view_env[consts.ViewEnv_ARGS].get("category_name")
-            result.render_with_code(
-                200, "admin.html", "./simplestyle_8")
+            result.render_with_code(200, "admin.html", "./simplestyle_8")
             return
         elif method == "GET":
             view_env["category_name"] = category.name
             view_env.static_vars["category"] = category
 
-            result.render_with_code(
-                200, "category_add.html", "./simplestyle_8")
+            result.render_with_code(200, "category_add.html", "./simplestyle_8")
 
 
 class CategoryCopy(ViewType):
@@ -386,8 +393,7 @@ class CategoryCopy(ViewType):
             copy.name += " (copy)"
             category_list.append(copy)
 
-        result.render_with_code(
-            200, "admin.html", "./simplestyle_8")
+        result.render_with_code(200, "admin.html", "./simplestyle_8")
 
 
 class CategoryDelete(ViewType):
@@ -398,8 +404,7 @@ class CategoryDelete(ViewType):
         if category:
             category_list.remove(category)
 
-        result.render_with_code(
-            200, "admin.html", "./simplestyle_8")
+        result.render_with_code(200, "admin.html", "./simplestyle_8")
 
 
 class Contact(ViewType):
@@ -411,8 +416,9 @@ class Contact(ViewType):
 @to_url("/test2", "test2")
 @debug
 def like_flask(view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-    result.code=200
-    result.data="view 'like' in flask"
+    result.code = 200
+    result.data = "view 'like' in flask"
+
 
 # fronts
 
@@ -439,7 +445,6 @@ class Urls(FrontType):
         return view_env
 
 
-
 if __name__ == "__main__":
     # ToDo: add argparse
     framework = FrameWork.get_framework()
@@ -460,37 +465,27 @@ if __name__ == "__main__":
 
     # TEACHER
     framework.register_views(TeacherAdd(), "/teachers/add/", "teachers_add")
-    framework.register_views(
-        TeacherEdit(), "/teachers/edit/", "teachers_edit")
-    framework.register_views(
-        TeacherDelete(), "/teachers/delete/", "teachers_delete")
-    framework.register_views(
-        TeacherCopy(), "/teacher/copy/", "teachers_copy")
+    framework.register_views(TeacherEdit(), "/teachers/edit/", "teachers_edit")
+    framework.register_views(TeacherDelete(), "/teachers/delete/", "teachers_delete")
+    framework.register_views(TeacherCopy(), "/teacher/copy/", "teachers_copy")
     # STUDENT
     framework.register_views(StudentAdd(), "/students/add/", "students_add")
-    framework.register_views(
-        StudentEdit(), "/students/edit/", "students_edit")
-    framework.register_views(
-        StudentDelete(), "/students/delete/", "students_delete")
-    framework.register_views(
-        StudentCopy(), "/students/copy/", "students_copy")
+    framework.register_views(StudentEdit(), "/students/edit/", "students_edit")
+    framework.register_views(StudentDelete(), "/students/delete/", "students_delete")
+    framework.register_views(StudentCopy(), "/students/copy/", "students_copy")
 
     # CATEGORY
     framework.register_views(CategoryAdd(), "/category/add/", "category_add")
-    framework.register_views(
-        CategoryEdit(), "/category/edit/", "category_edit")
-    framework.register_views(
-        CategoryDelete(), "/category/delete/", "category_delete")
-    framework.register_views(
-        CategoryCopy(), "/category/copy/", "category_copy")
+    framework.register_views(CategoryEdit(), "/category/edit/", "category_edit")
+    framework.register_views(CategoryDelete(), "/category/delete/", "category_delete")
+    framework.register_views(CategoryCopy(), "/category/copy/", "category_copy")
 
     # COURSES
     framework.register_views(CoursesList(), "/courses/", "courses_list")
     framework.register_views(CoursesAdd(), "/courses/add/", "courses_add")
     framework.register_views(CoursesCopy(), "/courses/copy/", "courses_copy")
     framework.register_views(CoursesEdit(), "/courses/edit/", "courses_edit")
-    framework.register_views(
-        CoursesDelete(), "/courses/delete/", "courses_delete")
+    framework.register_views(CoursesDelete(), "/courses/delete/", "courses_delete")
     #
     # fronts
     # framework.register_front(Date())

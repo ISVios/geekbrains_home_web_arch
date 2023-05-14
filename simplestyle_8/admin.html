@@ -32,6 +32,15 @@
                 </div>
             {% endfor %}
         </div>
+        <br>
+        <br>
+        <br>
+        <div class="catalog_list_count">
+            <h2>Catalog course count</h2>
+            <ul>
+                {% for item in SiteLogic.category %}<li>{{ item.name }}:{{ item.count_course() }}</li>{% endfor %}
+            </ul>
+        </div>
     </div>
 </div>
 {% endblock content %}

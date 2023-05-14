@@ -1,3 +1,10 @@
+class ArgList:
+    args: list
+
+    def __init__(self, *value) -> None:
+        self.args = [*value]
+
+
 def parse_input_data(data: str) -> dict:
     if not data:
         return {}
@@ -5,9 +12,27 @@ def parse_input_data(data: str) -> dict:
     result = {}
 
     params = data.split("&")
+    to_convert = set()
     for item in params:
         k, v = item.split("=")
-        result[k] = v
+        if k in result:
+            res_k = result[k]
+            type_k = type(res_k)
+            if type_k is ArgList:
+                res_k.args.append(v)
+            else:
+                to_convert.add(k)
+                result[k] = ArgList(res_k, v)
+
+        else:
+            result[k] = v
+
+    # convert ArgList to list
+    for index in to_convert:
+        res_index = result[index].args
+        result[index] = res_index
+
+    print(result)
 
     return result
 

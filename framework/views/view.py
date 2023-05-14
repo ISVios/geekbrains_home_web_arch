@@ -1,5 +1,6 @@
 import os
 import pathlib
+from typing import Callable
 
 from framework.types import ViewEnv, ViewResult, ViewType, consts
 
@@ -20,6 +21,17 @@ class ErrorMessage(ViewType):
 
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         result(400, self.err_msg)
+
+class FuncView(ViewType):
+    _func :Callable
+
+    def __init__(self, func) -> None:
+        self._func = func
+        super().__init__()
+
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        if self._func:
+            self._func(view_env, config, result, **kwds)
 
 
 # return file if Static

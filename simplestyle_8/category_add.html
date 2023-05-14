@@ -13,6 +13,16 @@
                     <span>Category Name</span>
                     <input class="contact" type="text" name="category_name" value={{ category_name }}>
                 </p>
+                <p>
+                    <span>Sub Category</span>
+                    <select multiple name="sub_category">
+                        {% for category_item in SiteLogic.category %}
+                            <option value={{ category_item.index }}>
+                                {{ category_item.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </p>
                 <p style="padding-top: 15px">
                     <span>&nbsp;</span>
                     <input class="submit"
