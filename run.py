@@ -12,8 +12,8 @@ from enum import Enum
 from framework import FrameWork, FrontType, SysEnv, ViewEnv, ViewResult, ViewType
 from framework.types import consts
 from framework.types.types import ViewEnv, ViewResult
+from framework.utils.decorators import debug, need_auth, to_url
 from framework.utils.patterns import SingleToneType
-from framework.utils.decorators import debug, to_url
 
 DEF_ADR = "0.0.0.0"
 DEF_PORT = 8080
@@ -113,6 +113,7 @@ class Course(CourseBase, abc.ABC):
     __ID: int = 0
     _index: int
     category: set
+    clients_index: set
     name: str
 
     def __init__(self, name: str, category: list):
@@ -121,6 +122,14 @@ class Course(CourseBase, abc.ABC):
         Course.__ID += 1
         self.name = name
         self.category.update(category)
+
+        self.clients_index = set()
+
+    def add_client(self, clients_index: int):
+        self.clients_index.add(clients_index)
+
+    def del_client(self, client_list: int):
+        self.clients_index.remove(client_list)
 
     @abc.abstractmethod
     def course_type(self) -> str:
@@ -137,16 +146,25 @@ class Course(CourseBase, abc.ABC):
 
 
 class InteractiveCourse(Course):
+    def __init__(self, name: str, category: list):
+        super().__init__(name, category)
+
     def course_type(self) -> str:
         return "Interactive"
 
 
 class RecordsCourse(Course):
+    def __init__(self, name: str, category: list):
+        super().__init__(name, category)
+
     def course_type(self) -> str:
         return "Record"
 
 
 class MixCourse(Course):
+    def __init__(self, name: str, category: list):
+        super().__init__(name, category)
+
     def course_type(self) -> str:
         return "Mix"
 
@@ -190,6 +208,12 @@ class SiteApi(metaclass=SingleToneType):
 
     def get_category_by_id(self, index):
         for elm in self.category:
+            if elm.index == index:
+                return elm
+        return None
+
+    def get_course_by_id(self, index):
+        for elm in self.courses:
             if elm.index == index:
                 return elm
         return None
@@ -285,6 +309,14 @@ class StudentCopy(ViewType):
 class CoursesList(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         view_env["courses"] = SiteApi().courses
+        method = view_env[consts.ViewEnv_METHOD]
+        if method == "POST":
+            course_index = view_env[consts.ViewEnv_URL_PARAM].get("course_index")
+            if course_index:
+                course_index = int(course_index)
+                course = SiteApi().get_course_by_id(course_index)
+                if course:
+                    course.add_client(view_env.user.index)
         result.render_with_code(200, "courses_list.html", "./simplestyle_8")
         return super().view(view_env, config, result, **kwds)
 
@@ -439,10 +471,16 @@ def like_flask(view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
 
 
 class Proffile(ViewType):
+    @need_auth(redirect_to_namespace="login")
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        if not view_env["is_auth"]:
-            result.redirect_to_namespace("login")
-            return
+        client_id = view_env.user.index
+        reg_list = []
+        for course in SiteApi().courses:
+            if client_id in course.clients_index:
+                reg_list.append(course)
+
+        view_env["courses"] = reg_list
+
         result.render_with_code(200, "profile.html", "./simplestyle_8")
 
 
@@ -530,5 +568,6 @@ if __name__ == "__main__":
     framework.register_front(ClientUrl())
 
     framework._register_client("admin", "12345678")
+    framework._register_client("a", "1")
 
     FrameWork.run_server(DEF_ADR, DEF_PORT)

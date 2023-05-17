@@ -8,9 +8,9 @@
         <p>Login: {{ __ClientAuth__.login }}</p>
         <p>Course</p>
         <ul>
-            {% for course in [1] %}
+            {% for course in courses %}
                 <li>
-                    <a href="#">Course</a>
+                    <a href="#">{{ course.name }}</a>
                 </li>
             {% endfor %}
         </ul>

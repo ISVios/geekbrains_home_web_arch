@@ -12,6 +12,14 @@
                             <img src={{ static('style/graphic.png') }} alt="courses_image" />
                         </div>
                         <div class="course_fotter">Positive: 0 | Negative: 0</div>
+                        {% if is_auth %}
+                            {% if not __ClientAuth__.index in course_item.clients_index  %}
+                                <form method="POST">
+                                    <button name="course_index" value={{ course_item.index }}>Registartion
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
                     </a>
                 </div>
             {% endfor %}

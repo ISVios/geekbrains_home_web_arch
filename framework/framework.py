@@ -46,8 +46,16 @@ class FrameWork(metaclass=SingleToneType):
 
     def _register_client(self, login: str, passwd: str):
         client = ByLoginPass(login, passwd, self.config[consts.KEY])
-
         self.clients.add(client)
+
+    def _get_client(self, by_login: str | None = None, by_index: int | None = None):
+        for client in self.clients:
+            if by_login:
+                if client.index == by_index:
+                    return client
+            elif by_index:
+                if client.login == by_login:
+                    return client
 
     def register_views(self, view: ViewType, url: str, namespace: str):
         self.tree.register_views(view, url, namespace)

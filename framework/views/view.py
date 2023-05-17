@@ -22,8 +22,9 @@ class ErrorMessage(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         result(400, self.err_msg)
 
+
 class FuncView(ViewType):
-    _func :Callable
+    _func: Callable
 
     def __init__(self, func) -> None:
         self._func = func

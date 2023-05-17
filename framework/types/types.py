@@ -251,10 +251,16 @@ class ByLoginPass(AuthBy):
 
 
 class ClientControl(TypedDict):
+    __ID: int = 0
+
     def __init__(self) -> None:
         super().__init__({}, False)
         self["auth"] = None
         self["prop"] = {}
+
+        self.add_prop("probe", datetime.datetime.now())
+        self.add_prop("id", ClientControl.__ID)
+        ClientControl.__ID += 1
 
     @property
     def login(self):
@@ -262,6 +268,10 @@ class ClientControl(TypedDict):
         if not auth:
             return " "
         return auth.login
+
+    @property
+    def index(self):
+        return self.get_prop("id")
 
     def _update(self):
         # update probe
