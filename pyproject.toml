@@ -10,6 +10,7 @@ packages = [{include = "geekbrains_home_web_arch"}]
 python = "3.10.10"
 uwsgi = "2.0.21"
 jija = "0.1.1"
+bcrypt = "^4.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pyvim = "3.0.3"
@@ -24,6 +25,8 @@ ipdb = "^0.13.13"
 djlint = "^1.25.0"
 ipython = "^8.13.2"
 ipdb = "^0.13.13"
+black = "^23.3.0"
+jedi = "^0.18.2"
 
 [build-system]
 requires = ["poetry-core"]

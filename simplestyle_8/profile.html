@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}
+    FYF - main page
+{% endblock title %}
+{% block content %}
+    <div id="content">
+        <h1>Profile</h1>
+        <p>Login: {{ __ClientAuth__.login }}</p>
+        <p>Course</p>
+        <ul>
+            {% for course in [1] %}
+                <li>
+                    <a href="#">Course</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock content %}

@@ -10,6 +10,7 @@ class LoggerFront(FrontType):
     def __init__(
         self, level: int = logging.DEBUG, custom_logger: "logging.Logger|None" = None
     ) -> None:
+        super().__init__()
         self.logger = custom_logger or logging.getLogger("FrameWork")
         # no config if custom_logger
         if custom_logger:

@@ -8,13 +8,13 @@
             <li {% if is_router('courses_list') %} class="current" {% endif %}>
                 <a href={{ router('courses_list') }}>Courses List</a>
             </li>
-            {% if True %}
+            {% if not is_auth %}
                 <li {% if is_router('login') %} class="current" {% endif %}>
                     <a href={{ router('login') }}>Login</a>
                 </li>
             {% else %}
-                <li {% if is_router('page') %} class="current" {% endif %}>
-                    <a href={{ router('page') }}>Proffile</a>
+                <li {% if is_router('profile') %} class="current" {% endif %}>
+                    <a href={{ router('profile') }}>Proffile</a>
                 </li>
             {% endif %}
             <li {% if is_router('admin') %} class="current" {% endif %}>

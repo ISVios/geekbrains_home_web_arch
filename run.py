@@ -166,12 +166,14 @@ class SiteApi(metaclass=SingleToneType):
     teachers: list
     students: list
     category: list
+    client: list
 
     def __init__(self) -> None:
         self.courses = []
         self.teachers = []
         self.students = []
         self.category = []
+        self.client = []
 
     @staticmethod
     def create_user(type_: UserFabric):
@@ -192,16 +194,32 @@ class SiteApi(metaclass=SingleToneType):
                 return elm
         return None
 
+    def login_client(self, param={}):
+        pass
+
 
 # urls
 class Index(ViewType):
     @debug
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        print(view_env["is_auth"])
         result.render_with_code(200, "index.html", "./simplestyle_8")
 
 
 class Login(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        method = view_env.http_method
+        param = view_env.url_param
+        if method == "POST":
+            login = param.get("login")
+            passwd = param.get("passwd")
+            if login and passwd:
+                for client in view_env["__DB_CLIENT__"]:
+                    if client.login == login:
+                        if client.is_valid(passwd):
+                            view_env.user.auth(client)
+                            result.redirect_to_namespace("profile")
+                            return
         result.render_with_code(200, "login.html", "./simplestyle_8")
         return super().view(view_env, config, result, **kwds)
 
@@ -283,7 +301,7 @@ class CoursesAdd(ViewType):
         view_env["category_list"] = SiteApi().category
         result.code = 400
         method = view_env[consts.ViewEnv_METHOD]
-        args = view_env[consts.ViewEnv_ARGS]
+        args = view_env[consts.ViewEnv_URL_PARAM]
         if method == "POST":
             course_type = args.get("course_type")
             course_name = args.get("course_name")
@@ -344,7 +362,7 @@ class CategoryAdd(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         method = view_env[consts.ViewEnv_METHOD]
         if method == "POST":
-            category_name = view_env[consts.ViewEnv_ARGS].get("category_name")
+            category_name = view_env[consts.ViewEnv_URL_PARAM].get("category_name")
             if category_name:
                 category = Category(category_name, [])
                 SiteApi().category.append(category)
@@ -359,7 +377,7 @@ class CategoryAdd(ViewType):
 class CategoryEdit(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
         method = view_env[consts.ViewEnv_METHOD]
-        index = int(view_env[consts.ViewEnv_ARGS].get("id") or "-1")
+        index = int(view_env[consts.ViewEnv_URL_PARAM].get("id") or "-1")
         category_list = SiteApi().category
         category = SiteApi().get_category_by_id(index)
 
@@ -385,7 +403,7 @@ class CategoryEdit(ViewType):
 
 class CategoryCopy(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        index = int(view_env[consts.ViewEnv_ARGS].get("id"))
+        index = int(view_env[consts.ViewEnv_URL_PARAM].get("id"))
         category_list = SiteApi().category
         category = SiteApi().get_category_by_id(index)
         if category:
@@ -398,7 +416,7 @@ class CategoryCopy(ViewType):
 
 class CategoryDelete(ViewType):
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
-        index = int(view_env[consts.ViewEnv_ARGS].get("id"))
+        index = int(view_env[consts.ViewEnv_URL_PARAM].get("id"))
         category_list = SiteApi().category
         category = SiteApi().get_category_by_id(index)
         if category:
@@ -420,6 +438,14 @@ def like_flask(view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
     result.data = "view 'like' in flask"
 
 
+class Proffile(ViewType):
+    def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        if not view_env["is_auth"]:
+            result.redirect_to_namespace("login")
+            return
+        result.render_with_code(200, "profile.html", "./simplestyle_8")
+
+
 # fronts
 
 
@@ -428,6 +454,13 @@ class SiteLogicFront(FrontType):
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
         view_env["SiteLogic"] = SiteApi()
+        return super().front_action(sys_env, view_env, config, **kwds)
+
+
+class ClientUrl(FrontType):
+    def front_action(
+        self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
+    ) -> ViewEnv:
         return super().front_action(sys_env, view_env, config, **kwds)
 
 
@@ -455,6 +488,8 @@ if __name__ == "__main__":
     framework.config["port"] = DEF_PORT
     framework.config["static_pth"] = "./simplestyle_8/"
     framework.config["logger_level"] = logging.INFO
+    framework.config[consts.KEY] = "weorfihjoishajfdohaoerhoiahrohfgsoi"
+    # framework.config[consts.CNFG_SYSENV_DEBUG] = True
 
     # views
     framework.register_views(Admin(), "/admin/", "admin")
@@ -462,6 +497,7 @@ if __name__ == "__main__":
     framework.register_views(Index(), "/", "main")
     framework.register_views(Contact(), "/contact/", "contact")
     framework.register_views(Login(), "/login/", "login")
+    framework.register_views(Proffile(), "/profile/", "profile")
 
     # TEACHER
     framework.register_views(TeacherAdd(), "/teachers/add/", "teachers_add")
@@ -491,5 +527,8 @@ if __name__ == "__main__":
     # framework.register_front(Date())
     # framework.register_front(Urls())
     framework.register_front(SiteLogicFront())
+    framework.register_front(ClientUrl())
+
+    framework._register_client("admin", "12345678")
 
     FrameWork.run_server(DEF_ADR, DEF_PORT)

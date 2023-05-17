@@ -3,7 +3,35 @@ from typing import Callable
 
 from framework.error import NoNameSpaceFound
 from framework.types import FrontType, SysEnv, ViewEnv, consts
+from framework.types.types import ByAnon, ClientControl
 from framework.utils.get_data import parse_args_by_method
+
+
+class LoginClient(FrontType):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def init(self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds):
+        view_env.static_vars["__ClientList__"] = {}
+        view_env["is_auth"] = False
+
+    def front_action(
+        self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
+    ) -> ViewEnv:
+        ip = sys_env.get("REMOTE_ADDR")
+        client_list = view_env.static_vars["__ClientList__"]
+        if not ip in client_list:
+            controll = ClientControl()
+            controll.auth(ByAnon())
+            #     authclient = AuthFabric.auth({"ip": ip})
+            view_env.static_vars["__ClientList__"][ip] = controll
+
+        client = view_env.static_vars["__ClientList__"][ip]
+        view_env["__ClientAuth__"] = client
+
+        view_env["is_auth"] = client.is_auth()
+
+        return super().front_action(sys_env, view_env, config, **kwds)
 
 
 class NameSpaceList(FrontType):
@@ -11,12 +39,13 @@ class NameSpaceList(FrontType):
 
     def __init__(self, namespace_list):
         self.namespace_list = namespace_list
+        super().__init__()
 
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
-        # view_env["_"] = sys_env[]
         # full_url
+        view_env["__IP__"] = sys_env["REMOTE_ADDR"]
         view_env[consts.ViewEnv_CUR_URL] = sys_env["PATH_INFO"]
         view_env[consts.ViewEnv_HOST_URL] = sys_env["HTTP_HOST"]
         view_env[consts.ViewEnv_NAMESPAGEPAGE] = self.namespace_list
@@ -30,6 +59,7 @@ class FunctionCalback(FrontType):
     def __init__(self, func: Callable, force_name: "str|None" = None) -> None:
         self.func = func
         self.name = force_name or func.__name__
+        super().__init__()
 
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
@@ -38,8 +68,10 @@ class FunctionCalback(FrontType):
         return view_env
 
 
-# ToDo: connect with config "debug_print_sysenv"
 class DebugSysEnv(FrontType):
+    def __init__(self) -> None:
+        super().__init__()
+
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
@@ -47,8 +79,10 @@ class DebugSysEnv(FrontType):
         return super().front_action(sys_env, view_env, config, **kwds)
 
 
-# ToDo: connect with config "debug_print_viewenv"
 class DebugViewEnv(FrontType):
+    def __init__(self) -> None:
+        super().__init__()
+
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
@@ -57,6 +91,9 @@ class DebugViewEnv(FrontType):
 
 
 class BreakPoint(FrontType):
+    def __init__(self) -> None:
+        super().__init__()
+
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
@@ -73,15 +110,23 @@ class BreakPoint(FrontType):
 
 
 class ParsedEnvArgs(FrontType):
+    def __init__(self) -> None:
+        super().__init__()
+
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
         view_env[consts.ViewEnv_METHOD] = sys_env.get("REQUEST_METHOD")
-        view_env[consts.ViewEnv_ARGS] = parse_args_by_method(sys_env.to_dict())
+        # view_env[consts.ViewEnv_ARGS] = parse_args_by_method(sys_env.to_dict())
+        view_env[consts.ViewEnv_URL_PARAM] = parse_args_by_method(sys_env.to_dict())
+        # ToDo: add `get args from UrlTree`
         return view_env
 
 
 class Router(FrontType):
+    def __init__(self) -> None:
+        super().__init__()
+
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
@@ -122,6 +167,9 @@ class Router(FrontType):
 
 
 class UrlJump(FrontType):
+    def __init__(self) -> None:
+        super().__init__()
+
     def front_action(
         self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
     ) -> ViewEnv:
@@ -145,6 +193,7 @@ class Static(FrontType):
         home_static_path: str,
         static_flg: str = consts.DEFAULT_CNFG_STATIC_MEDIA_FLG_VALUE,
     ) -> None:
+        super().__init__()
         self.static_pth = home_static_path
         self.static_flg = static_flg
 

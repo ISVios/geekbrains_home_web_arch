@@ -12,8 +12,10 @@ from framework.fronts import (
     Router,
     Static,
 )
+from framework.fronts.fronts import DebugSysEnv, DebugViewEnv, LoginClient
 from framework.logger.logger import LoggerFront
 from framework.types import FrontType, SysEnv, ViewEnv, ViewResult, ViewType, consts
+from framework.types.types import ByLoginPass
 from framework.types.url_tree import UrlTree
 from framework.views import NoFoundPage, MediaStaicFileView
 from framework.utils import SingleToneType
@@ -26,6 +28,8 @@ class FrameWork(metaclass=SingleToneType):
     funcs: dict[str, Callable]
     config: dict
     static_vars: dict
+    client: set
+    init: bool
 
     def __init__(self) -> None:
         self.tree = UrlTree()
@@ -34,11 +38,18 @@ class FrameWork(metaclass=SingleToneType):
         self.config = {}
         self.static_vars = {}
 
+        self.clients = set()
+        self.init = False
+
     def static_var(self, name: str, var):
         self.static_vars[name] = var
 
-    def register_views(self, view: ViewType, url: str, namespace: str):
+    def _register_client(self, login: str, passwd: str):
+        client = ByLoginPass(login, passwd, self.config[consts.KEY])
 
+        self.clients.add(client)
+
+    def register_views(self, view: ViewType, url: str, namespace: str):
         self.tree.register_views(view, url, namespace)
 
         # have url "item/<value:type>"
@@ -88,9 +99,11 @@ class FrameWork(metaclass=SingleToneType):
 
             # add static_var
             view_env[consts.ViewEnv_StaticVar] = self.static_vars
+            view_env["__DB_CLIENT__"] = self.clients
 
             # buildin fronts
             buildin_front = [
+                LoginClient(),
                 BreakPoint(),
                 LoggerFront(
                     custom_logger=self.config.get(consts.CNFG_CUSTOM_LOGGER)
@@ -110,9 +123,18 @@ class FrameWork(metaclass=SingleToneType):
                 ),
             ]
 
+            if self.config.get(consts.CNFG_SYSENV_DEBUG, False):
+                buildin_front.append(DebugSysEnv())
+
+            if self.config.get(consts.CNFG_VIEWENV_DEBUG, False):
+                buildin_front.append(DebugViewEnv())
+
             for front in buildin_front:
+                if not self.init:
+                    front.init(sys_env, view_env, self.config)
                 front(sys_env, view_env, self.config)
 
+            self.init = True
             # user fronts
             for front in self.fronts:
                 front(sys_env, view_env, self.config)
@@ -134,8 +156,7 @@ class FrameWork(metaclass=SingleToneType):
             # sys_env - don`t must be in view_env
             view(view_env, self.config, view_result)
             response(
-                str(view_result.code) +
-                " ", [("Content-Type", view_result.data_type)]
+                str(view_result.code) + " ", [("Content-Type", view_result.data_type)]
             )
 
             if view_result.is_text:
@@ -163,7 +184,7 @@ class FrameWork(metaclass=SingleToneType):
                 return [""]
 
         except Exception as err:
-            # raise err
+            raise err
             response("400 ", [("Content-Type", "text/html")])
             if self.config[consts.DEBUG]:
                 return [f"<h1>Exception <br>'{err.__str__()}'</br><h1>".encode("utf-8")]

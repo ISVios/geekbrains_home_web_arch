@@ -31,9 +31,6 @@ def parse_input_data(data: str) -> dict:
     for index in to_convert:
         res_index = result[index].args
         result[index] = res_index
-
-    print(result)
-
     return result
 
 

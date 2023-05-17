@@ -54,7 +54,6 @@ class UrlNodeProto(abc.ABC):
         return list(self._childrens)
 
     def get_all_urls(self):
-
         if not hasattr(self, "_childrens"):
             return []
         return [[ch._url, *ch.get_all_urls()] for ch in self._childrens]
@@ -129,7 +128,9 @@ class UrlTree:
         if node and node.view:
             return node.view
 
-    def _go_to_node(self, url, view_env: ViewEnv | None, create_node: bool = False) -> UrlNodeProto | None:
+    def _go_to_node(
+        self, url, view_env: ViewEnv | None, create_node: bool = False
+    ) -> UrlNodeProto | None:
         # cut &* (url parm)
         url_ = url.split("&")[0]
 
@@ -195,7 +196,6 @@ class UrlTree:
         return cur_node
 
     def register_views(self, view: ViewType, url: str, namespace: str):
-
         # namespace is exist
         if namespace in UrlTree.__namespaces:
             raise NotImplementedError("dup namespace")
@@ -209,5 +209,4 @@ class UrlTree:
             UrlTree.__namespaces[namespace] = node
 
     def urls(self):
-
         return self._root.get_all_urls()
