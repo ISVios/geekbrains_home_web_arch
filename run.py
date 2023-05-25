@@ -6,12 +6,14 @@ import abc
 import argparse
 import datetime
 import logging
+from sqlite3 import connect
 from copy import deepcopy
 from enum import Enum
+from client_model import Client, ClientMapper
 
 from framework import FrameWork, FrontType, SysEnv, ViewEnv, ViewResult, ViewType
 from framework.types import consts
-from framework.types.types import ViewEnv, ViewResult
+from framework.types.types import ViewEnv, ViewResult, Session
 from framework.utils.decorators import debug, need_auth, to_url
 from framework.utils.patterns import SingleToneType
 
@@ -517,6 +519,52 @@ class Urls(FrontType):
 
 
 if __name__ == "__main__":
+    try:
+        connect_ = connect("db.sqlite3")
+
+        Session.new_session(connect_)
+        session = Session.get_current()
+
+        # create
+        client_1 = Client(None, "a", "1234")
+        client_2 = Client(None, "b", "5678")
+        client_3 = Client(None, "c", "****")
+        client_1.mark_new()
+        client_2.mark_new()
+        client_3.mark_new()
+
+        client_mapper = ClientMapper(connect_)
+
+        session.set_mapper(ClientMapper)
+
+        Session.get_current().commit()
+
+        # get all
+        print("all Clients >> ", Client.all())
+
+        # get by id
+        print("Client with id == 1 >> ", Client.by_id(1))
+        print("Client with id == 1000 >> ", Client.by_id(1000))
+
+        # Session.get_current()..all()
+
+        # edit
+        client_1.login = "q"
+        client_1.mark_change()
+
+        Session.get_current().commit()
+
+        # delete
+
+        client_2.make_delete()  # or del client_2
+
+        session.commit()
+
+        # _drop_all
+        # session._drop_all(Client)
+
+    except Exception as ex:
+        raise ex
     # ToDo: add argparse
     framework = FrameWork.get_framework()
 

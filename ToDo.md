@@ -14,6 +14,7 @@
 - [ ] add static var
 - [x] switch dict view url finder to tree
 - [ ] test url tree (/<a:int>/)
+- [ ] make from metaclass DbModel
 
 ## Task
 
