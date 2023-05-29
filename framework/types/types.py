@@ -255,6 +255,7 @@ class ByLoginPass(AuthBy):
         return self.time + datetime.timedelta(hours=1) < datetime.datetime.now()
 
 
+# ToDo merge with db client
 class ClientControl(TypedDict):
     __ID: int = 0
 
@@ -262,6 +263,7 @@ class ClientControl(TypedDict):
         super().__init__({}, False)
         self["auth"] = None
         self["prop"] = {}
+        # self["db_model"] = None
 
         self.add_prop("probe", datetime.datetime.now())
         self.add_prop("id", ClientControl.__ID)
@@ -309,14 +311,14 @@ class MapperRegistry:
     mappers = {}
 
     @staticmethod
-    def get_mapper(obj) -> "tuple[Type, Mapper] | None":
+    def get_mapper(obj):
         for _, v in MapperRegistry.mappers.items():
-            if isinstance(obj, v[0]):
-                return v[1]  # (connection)
+            if isinstance(obj, v["class_type"]):
+                return v["mapper"]  # (connection)
         raise ValueError("mapper no found")
 
     @staticmethod
-    def get_current_mapper(name) -> "tuple[Type,Mapper]":
+    def get_current_mapper(name) -> dict:
         return MapperRegistry.mappers[name]  # (connection)
 
 
@@ -360,18 +362,30 @@ class Session:
 
     def _create_objs(self):
         for obj in self.create_obj:
-            MapperRegistry.get_mapper(obj).insert(obj)
+            mapper = MapperRegistry.get_mapper(obj)
+            if not mapper:
+                raise NotImplementedError
+            mapper.insert(obj)
 
     def _change_objs(self):
         for obj in self.change_obj:
-            MapperRegistry.get_mapper(obj).update(obj)
+            mapper = MapperRegistry.get_mapper(obj)
+            if not mapper:
+                raise NotImplementedError
+            mapper.update(obj)
 
     def _delete_objs(self):
         for obj in self.delete_obj:
-            MapperRegistry.get_mapper(obj).delete(obj)
+            mapper = MapperRegistry.get_mapper(obj)
+            if not mapper:
+                raise NotImplementedError
+            mapper.delete(obj)
 
     def _drop_all(self, cls):
-        MapperRegistry.get_current_mapper(cls.tablename)[1]._drop_all()
+        class_type_and_mapper_dict = MapperRegistry.get_current_mapper(cls.tablename)
+        if not class_type_and_mapper_dict:
+            raise NotImplementedError
+        class_type_and_mapper_dict["mapper"]._drop_all()
 
     @staticmethod
     def new_session(connect):
@@ -423,7 +437,7 @@ class Mapper:
         self.cursor = connection.cursor()
         self.tablename = _tablename
         self.cls = cls
-        MapperRegistry.mappers[_tablename] = (cls, self)
+        MapperRegistry.mappers[_tablename] = {"class_type": cls, "mapper": self}
 
     def all(self, _fields={}):
         statement = f"SELECT * from {self.tablename}"
@@ -519,11 +533,13 @@ class DbModel:
 
     @classmethod
     def all(cls):
-        return MapperRegistry.get_current_mapper(cls.tablename)[1].all()
+        return MapperRegistry.get_current_mapper(cls.tablename)["mapper"].all()
 
     @classmethod
     def by_id(cls, _id: int):
-        return MapperRegistry.get_current_mapper(cls.tablename)[1].find_by_id(_id)
+        return MapperRegistry.get_current_mapper(cls.tablename)["mapper"].find_by_id(
+            _id
+        )
 
     def __delete__(self):
         self.make_delete()
