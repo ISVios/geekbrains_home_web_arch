@@ -1,10 +1,28 @@
 import os.path
+from sqlite3 import Connection, connect
 from typing import Callable
 
 from framework.error import NoNameSpaceFound
 from framework.types import FrontType, SysEnv, ViewEnv, consts
-from framework.types.types import ByAnon, ClientControl
+from framework.types.types import ByAnon, ClientControl, Session
 from framework.utils.get_data import parse_args_by_method
+
+
+class DbFront(FrontType):
+    db: Connection
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def init(self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds):
+        self.db = connect("db.sqlite3")
+        Session.new_session(self.db)
+        return super().init(sys_env, view_env, config, **kwds)
+
+    def front_action(
+        self, sys_env: SysEnv, view_env: ViewEnv, config: dict, **kwds
+    ) -> ViewEnv:
+        return super().front_action(sys_env, view_env, config, **kwds)
 
 
 class LoginClient(FrontType):
@@ -21,7 +39,7 @@ class LoginClient(FrontType):
         ip = sys_env.get("REMOTE_ADDR")
         client_list = view_env.static_vars["__ClientList__"]
         if not ip in client_list:
-            controll = ClientControl()
+            controll = ClientControl(config)
             controll.auth(ByAnon())
             #     authclient = AuthFabric.auth({"ip": ip})
             view_env.static_vars["__ClientList__"][ip] = controll

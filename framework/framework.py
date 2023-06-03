@@ -1,6 +1,6 @@
-from typing import Callable
+from sqlite3 import Connection, connect
+from typing import Callable, Type
 from wsgiref.simple_server import make_server
-import re
 
 from framework.error import NoNameSpaceFound
 from framework.error.error import DuplicateNameSpace, FrameWorkError
@@ -12,16 +12,17 @@ from framework.fronts import (
     Router,
     Static,
 )
-from framework.fronts.fronts import DebugSysEnv, DebugViewEnv, LoginClient
+from framework.fronts.fronts import DebugSysEnv, DebugViewEnv, LoginClient, DbFront
 from framework.logger.logger import LoggerFront
 from framework.types import FrontType, SysEnv, ViewEnv, ViewResult, ViewType, consts
-from framework.types.types import ByLoginPass
+from framework.types.types import ByLoginPass, DbModel, Mapper, MapperRegistry, Session
 from framework.types.url_tree import UrlTree
 from framework.views import NoFoundPage, MediaStaicFileView
 from framework.utils import SingleToneType
 
 
 class FrameWork(metaclass=SingleToneType):
+    db: Connection
     tree: UrlTree
     views: dict[str, tuple[ViewType, str]]
     fronts: set
@@ -41,12 +42,19 @@ class FrameWork(metaclass=SingleToneType):
         self.clients = set()
         self.init = False
 
+        self.db = connect("db.db.sqlite3")
+        Session.new_session(self.db)
+
     def static_var(self, name: str, var):
         self.static_vars[name] = var
 
     def _register_client(self, login: str, passwd: str):
         client = ByLoginPass(login, passwd, self.config[consts.KEY])
         self.clients.add(client)
+
+    def _register_clients_by_db(self, mapper: Type[Mapper], class_type: Type[DbModel]):
+        mapper(connection=self.db)
+        print(MapperRegistry.mappers)
 
     def _get_client(self, by_login: str | None = None, by_index: int | None = None):
         for client in self.clients:
@@ -111,6 +119,7 @@ class FrameWork(metaclass=SingleToneType):
 
             # buildin fronts
             buildin_front = [
+                DbFront(),
                 LoginClient(),
                 BreakPoint(),
                 LoggerFront(

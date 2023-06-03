@@ -21,8 +21,8 @@ class Client(DbModel):
 
 
 class ClientMapper(Mapper):
-    def __init__(self, connection):
-        super().__init__(connection, "client", Client)
+    model = Client
+    tablename = "client"
 
     def insert(self, obj):
         return super().insert(obj, ("login", "passwd"))

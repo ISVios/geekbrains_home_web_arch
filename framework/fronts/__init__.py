@@ -6,6 +6,7 @@ from .fronts import (
     ParsedEnvArgs,
     FunctionCalback,
     Static,
+    DbFront,
 )
 
 
@@ -17,4 +18,5 @@ __all__ = [
     "ParsedEnvArgs",
     "FunctionCalback",
     "Static",
+    "DbFront",
 ]

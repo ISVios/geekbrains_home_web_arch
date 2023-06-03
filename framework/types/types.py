@@ -255,15 +255,24 @@ class ByLoginPass(AuthBy):
         return self.time + datetime.timedelta(hours=1) < datetime.datetime.now()
 
 
+class ByDbLoginPass(AuthBy):
+    def is_valid(self, login, passwd, client) -> bool:
+        return super().is_valid()
+
+
 # ToDo merge with db client
 class ClientControl(TypedDict):
     __ID: int = 0
 
-    def __init__(self) -> None:
+    def __init__(self, config) -> None:
         super().__init__({}, False)
         self["auth"] = None
         self["prop"] = {}
-        # self["db_model"] = None
+        custom_model = config.get(consts.CNFG_CUSTOM_USER_MODEL)
+        if custom_model and not DbModel in custom_model.__bases__:
+            raise ValueError("Custome model must be extend by DbModel")
+        elif custom_model:
+            self["db_model"] = custom_model
 
         self.add_prop("probe", datetime.datetime.now())
         self.add_prop("id", ClientControl.__ID)
@@ -362,21 +371,21 @@ class Session:
 
     def _create_objs(self):
         for obj in self.create_obj:
-            mapper = MapperRegistry.get_mapper(obj)
+            mapper = MapperRegistry.get_mapper(obj)(self.connect)
             if not mapper:
                 raise NotImplementedError
             mapper.insert(obj)
 
     def _change_objs(self):
         for obj in self.change_obj:
-            mapper = MapperRegistry.get_mapper(obj)
+            mapper = MapperRegistry.get_mapper(obj)(self.connect)
             if not mapper:
                 raise NotImplementedError
             mapper.update(obj)
 
     def _delete_objs(self):
         for obj in self.delete_obj:
-            mapper = MapperRegistry.get_mapper(obj)
+            mapper = MapperRegistry.get_mapper(obj)(self.connect)
             if not mapper:
                 raise NotImplementedError
             mapper.delete(obj)
@@ -385,7 +394,7 @@ class Session:
         class_type_and_mapper_dict = MapperRegistry.get_current_mapper(cls.tablename)
         if not class_type_and_mapper_dict:
             raise NotImplementedError
-        class_type_and_mapper_dict["mapper"]._drop_all()
+        class_type_and_mapper_dict["mapper"](self.connect)._drop_all()
 
     @staticmethod
     def new_session(connect):
@@ -432,21 +441,28 @@ class Session:
 
 
 class Mapper:
-    def __init__(self, connection, _tablename, cls):
+    model: "Type[DbModel]"
+    tablename: str
+
+    @classmethod
+    def reg(cls):
+        MapperRegistry.mappers[cls.tablename] = {
+            "class_type": cls.model,
+            "mapper": cls,
+        }
+
+    def __init__(self, connection):
         self.connection = connection
         self.cursor = connection.cursor()
-        self.tablename = _tablename
-        self.cls = cls
-        MapperRegistry.mappers[_tablename] = {"class_type": cls, "mapper": self}
 
     def all(self, _fields={}):
         statement = f"SELECT * from {self.tablename}"
         self.cursor.execute(statement)
         result = []
-        headers = list(map(lambda x: x[0], self.cursor.description))
+        headers = [x[0] for x in self.cursor.description]
         for item in self.cursor:
-            args = dict((zip(headers, item)))
-            instance = self.cls(**args)
+            args = dict(zip(headers, item))
+            instance = self.__class__.model(**args)
             result.append(instance)
             Session.add_to_cache(instance)
         return result
@@ -460,7 +476,7 @@ class Mapper:
         self.cursor.execute(statement, (id,))
         result = self.cursor.fetchone()
         if result:
-            return self.cls(*result)
+            return self.__class__.model(*result)
         else:
             return None
             # raise ValueError(f"record with id={id} not found")
@@ -514,13 +530,17 @@ class Mapper:
         self.cursor.execute(statement)
         try:
             self.connection.commit()
-            Session.clear_cache_type(self.cls)
+            Session.clear_cache_type(self.__class__.model)
         except Exception as e:
             raise ValueError(e.args)
 
 
 class DbModel:
     tablename: str = ""
+
+    def __init__(self) -> None:
+        if not self.__class__.tablename:
+            raise ValueError("DbModel must have cls.tablename field")
 
     def mark_new(self):
         Session.get_current().register_new(self)
@@ -533,13 +553,15 @@ class DbModel:
 
     @classmethod
     def all(cls):
-        return MapperRegistry.get_current_mapper(cls.tablename)["mapper"].all()
+        conncet = Session.get_current().connect
+        return MapperRegistry.get_current_mapper(cls.tablename)["mapper"](conncet).all()
 
     @classmethod
     def by_id(cls, _id: int):
-        return MapperRegistry.get_current_mapper(cls.tablename)["mapper"].find_by_id(
-            _id
-        )
+        conncet = Session.get_current().connect
+        return MapperRegistry.get_current_mapper(cls.tablename)["mapper"](
+            conncet
+        ).find_by_id(_id)
 
     def __delete__(self):
         self.make_delete()

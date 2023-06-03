@@ -228,6 +228,8 @@ class SiteApi(metaclass=SingleToneType):
 class Index(ViewType):
     @debug
     def view(self, view_env: ViewEnv, config: dict, result: ViewResult, **kwds):
+        print(Session.get_current())
+        print(Client.all())
         print(view_env["is_auth"])
         result.render_with_code(200, "index.html", "./simplestyle_8")
 
@@ -519,54 +521,9 @@ class Urls(FrontType):
 
 
 if __name__ == "__main__":
-    try:
-        connect_ = connect("db.sqlite3")
-
-        Session.new_session(connect_)
-        session = Session.get_current()
-
-        # create
-        client_1 = Client(None, "a", "1234")
-        client_2 = Client(None, "b", "5678")
-        client_3 = Client(None, "c", "****")
-        client_1.mark_new()
-        client_2.mark_new()
-        client_3.mark_new()
-
-        client_mapper = ClientMapper(connect_)
-
-        session.set_mapper(ClientMapper)
-
-        Session.get_current().commit()
-
-        # get all
-        print("all Clients >> ", Client.all())
-
-        # get by id
-        print("Client with id == 1 >> ", Client.by_id(1))
-        print("Client with id == 1000 >> ", Client.by_id(1000))
-
-        # Session.get_current()..all()
-
-        # edit
-        client_1.login = "q"
-        client_1.mark_change()
-
-        Session.get_current().commit()
-
-        # delete
-
-        client_2.make_delete()  # or del client_2
-
-        session.commit()
-
-        # _drop_all
-        # session._drop_all(Client)
-
-    except Exception as ex:
-        raise ex
-    # ToDo: add argparse
     framework = FrameWork.get_framework()
+
+    ClientMapper.reg()
 
     # config
     framework.config["debug"] = True
@@ -575,6 +532,7 @@ if __name__ == "__main__":
     framework.config["static_pth"] = "./simplestyle_8/"
     framework.config["logger_level"] = logging.INFO
     framework.config[consts.KEY] = "weorfihjoishajfdohaoerhoiahrohfgsoi"
+    framework.config[consts.CNFG_CUSTOM_USER_MODEL] = Client
     # framework.config[consts.CNFG_SYSENV_DEBUG] = True
 
     # views
@@ -615,7 +573,8 @@ if __name__ == "__main__":
     framework.register_front(SiteLogicFront())
     framework.register_front(ClientUrl())
 
-    framework._register_client("admin", "12345678")
-    framework._register_client("a", "1")
+    # framework._register_client("admin", "12345678")
+    # framework._register_client("a", "1")
+    # framework._register_clients_by_db(ClientMapper, Client)
 
     FrameWork.run_server(DEF_ADR, DEF_PORT)

@@ -49,6 +49,7 @@ CNFG_VIEWENV_DEBUG = "debug_print_viewenv"
 CNFG_SYSENV_DEBUG = "debug_print_sysenv"
 CNFG_LOGGER_LEVEL = "logger_level"
 CNFG_CUSTOM_LOGGER = "custom_logger"
+CNFG_CUSTOM_USER_MODEL = "custom_client_model"
 CNFG_STATIC_PTH = "static_pth"
 CNFG_STATIC_MEDIA_FLG = "custom_media_flg"
 CNFG_CLIENT_PROBE = "custom_client_probe"
@@ -59,6 +60,7 @@ DEFAULT_CNFG_LOGGER_LEVEL = logging.INFO
 DEFAULT_CNFG_STATIC_PTH = "./template"
 DEFAULT_CNFG_VIEW_TYPE = CONTENT_TYPE_HTML
 DEFAULT_CNFG_CLIENT_PROBE = datetime.timedelta(hours=1)
+DEFAULT_CNFG_CLIENT_MODEL = None
 
 # urs regex parser
 DEFAULT_CNFG_URL_PARSER = re.compile("")
