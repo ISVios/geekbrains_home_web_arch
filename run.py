@@ -242,12 +242,14 @@ class Login(ViewType):
             login = param.get("login")
             passwd = param.get("passwd")
             if login and passwd:
-                for client in view_env["__DB_CLIENT__"]:
-                    if client.login == login:
-                        if client.is_valid(passwd):
-                            view_env.user.auth(client)
-                            result.redirect_to_namespace("profile")
-                            return
+                client = Client.filter(_by={"login": login})
+                print(client)
+                if client:
+                    client = client[0]
+                    if str(client.passwd) == passwd:
+                        view_env.user.auth(client)
+                        result.redirect_to_namespace("profile")
+                        return
         result.render_with_code(200, "login.html", "./simplestyle_8")
         return super().view(view_env, config, result, **kwds)
 

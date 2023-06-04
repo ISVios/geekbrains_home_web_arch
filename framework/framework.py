@@ -53,8 +53,7 @@ class FrameWork(metaclass=SingleToneType):
         self.clients.add(client)
 
     def _register_clients_by_db(self, mapper: Type[Mapper], class_type: Type[DbModel]):
-        mapper(connection=self.db)
-        print(MapperRegistry.mappers)
+        pass
 
     def _get_client(self, by_login: str | None = None, by_index: int | None = None):
         for client in self.clients:

@@ -204,6 +204,11 @@ class ViewType:
 # Token -> LoginPass  (convert)
 # Other -> LoginPass
 class AuthBy(metaclass=abc.ABCMeta):
+    auth: bool
+
+    def __init__(self) -> None:
+        self.auth = False
+
     def probe_over(self):
         return False
 
@@ -255,9 +260,18 @@ class ByLoginPass(AuthBy):
         return self.time + datetime.timedelta(hours=1) < datetime.datetime.now()
 
 
-class ByDbLoginPass(AuthBy):
-    def is_valid(self, login, passwd, client) -> bool:
-        return super().is_valid()
+class ByDb(AuthBy):
+    def is_valid(self, login, passwd, model: "DbModel") -> bool:
+        self.auth = False
+        print(model.all())
+        for client in model.all():
+            if client.login == login:
+                print(client)
+                pass
+        return self.auth
+
+    def is_auth(self) -> bool:
+        return self.auth
 
 
 # ToDo merge with db client
@@ -270,9 +284,7 @@ class ClientControl(TypedDict):
         self["prop"] = {}
         custom_model = config.get(consts.CNFG_CUSTOM_USER_MODEL)
         if custom_model and not DbModel in custom_model.__bases__:
-            raise ValueError("Custome model must be extend by DbModel")
-        elif custom_model:
-            self["db_model"] = custom_model
+            self["auth"] = ByDb()
 
         self.add_prop("probe", datetime.datetime.now())
         self.add_prop("id", ClientControl.__ID)
@@ -455,8 +467,8 @@ class Mapper:
         self.connection = connection
         self.cursor = connection.cursor()
 
-    def all(self, _fields={}):
-        statement = f"SELECT * from {self.tablename}"
+    def all(self, _fields="*"):
+        statement = f"SELECT {_fields} from {self.tablename}"
         self.cursor.execute(statement)
         result = []
         headers = [x[0] for x in self.cursor.description]
@@ -493,6 +505,19 @@ class Mapper:
             Session.add_to_cache(obj)
         except Exception as e:
             raise ValueError(e.args)
+
+    def filter(self, _by={}, _fields="*"):
+        filter_by = " and ".join([f"{k} = '{v}'" for k, v in _by.items()])
+        statement = f"SELECT {_fields} FROM {self.tablename} WHERE {filter_by}"
+        self.cursor.execute(statement)
+        result = []
+        headers = [x[0] for x in self.cursor.description]
+        for item in self.cursor:
+            args = dict(zip(headers, item))
+            instance = self.__class__.model(**args)
+            result.append(instance)
+            Session.add_to_cache(instance)
+        return result
 
     def update(self, obj, _fields_dict={}):
         update_value = ""
@@ -562,6 +587,13 @@ class DbModel:
         return MapperRegistry.get_current_mapper(cls.tablename)["mapper"](
             conncet
         ).find_by_id(_id)
+
+    @classmethod
+    def filter(cls, _by={}, _fields="*"):
+        conncet = Session.get_current().connect
+        return MapperRegistry.get_current_mapper(cls.tablename)["mapper"](
+            conncet
+        ).filter(_by=_by, _fields=_fields)
 
     def __delete__(self):
         self.make_delete()

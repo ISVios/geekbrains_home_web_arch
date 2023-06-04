@@ -13,6 +13,9 @@ class Client(DbModel):
         self.login = login
         self.passwd = passwd
 
+    def is_auth(self):
+        return True
+
     def __str__(self) -> str:
         return f"Client[{self.id}]{self.login}"
 
